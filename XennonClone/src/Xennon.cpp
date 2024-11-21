@@ -7,7 +7,9 @@ class Xennon : public WE::Game
 public:
 	Xennon()
 	{
-
+		windowWidth = 400;
+		windowHeight = 800;
+		gameName = "Xennon Clone";
 	}
 
 	~Xennon()
@@ -15,7 +17,7 @@ public:
 
 	}
 
-	void Run() override
+	void Start() override
 	{
 		std::cout << "xennon is running !" << std::endl;
 		std::cin;
