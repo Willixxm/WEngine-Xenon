@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core.h"
-#include "WSDLWindow.h"
+#include <string>
 
 namespace WE
 {

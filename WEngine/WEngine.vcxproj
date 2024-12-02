@@ -15,12 +15,10 @@
     <ClInclude Include="src\WEngine\EntryPoint.h" />
     <ClInclude Include="src\WEngine\Game.h" />
     <ClInclude Include="src\WEngine\Core.h" />
-    <ClInclude Include="src\WEngine\WInputSys.h" />
     <ClInclude Include="src\WEngine\WSDLWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\WEngine\Game.cpp" />
-    <ClCompile Include="src\WEngine\WInputSys.cpp" />
     <ClCompile Include="src\WEngine\WSDLWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
