@@ -27,7 +27,7 @@
     <ClInclude Include="src\WEngine\EntryPoint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\WEngine\WSDLWindow.h">
+    <ClInclude Include="src\WEngine\WWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -35,7 +35,7 @@
     <ClCompile Include="src\WEngine\Game.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\WEngine\WSDLWindow.cpp">
+    <ClCompile Include="src\WEngine\WWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

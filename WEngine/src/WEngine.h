@@ -4,8 +4,7 @@
 
 #include "WEngine/Game.h"
 
-#include "WEngine/WSDLWindow.h"
-
+#include "WEngine/WWindow.h"
 
 // --==-== Entry Point ==-==--
 #include "WEngine/EntryPoint.h"

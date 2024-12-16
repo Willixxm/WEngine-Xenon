@@ -15,11 +15,11 @@
     <ClInclude Include="src\WEngine\EntryPoint.h" />
     <ClInclude Include="src\WEngine\Game.h" />
     <ClInclude Include="src\WEngine\Core.h" />
-    <ClInclude Include="src\WEngine\WSDLWindow.h" />
+    <ClInclude Include="src\WEngine\WWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\WEngine\Game.cpp" />
-    <ClCompile Include="src\WEngine\WSDLWindow.cpp" />
+    <ClCompile Include="src\WEngine\WWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\SDL2\lib\x64\SDL2.dll" />

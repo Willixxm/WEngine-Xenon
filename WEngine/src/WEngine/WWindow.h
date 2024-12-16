@@ -8,14 +8,14 @@ class SDL_Renderer;
 
 namespace WE
 {
-	class WE_API WSDLWindow
+	class WE_API WWindow
 	{
 	private:
 		SDL_Window* window = nullptr;
 		SDL_Renderer* renderTarget = nullptr;
 	public:
-		WSDLWindow(std::string wName, int wWidth, int wHeight);
-		~WSDLWindow();
+		WWindow(std::string wName, int wWidth, int wHeight);
+		~WWindow();
 
 	};
 }

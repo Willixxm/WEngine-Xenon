@@ -7,10 +7,9 @@ extern WE::Game* WE::CreateGame();
 
 int main(int argc, char** argv)
 {
-
 	WE::Game* game = WE::CreateGame();
 
-	WE::WSDLWindow* GameWindow = new WE::WSDLWindow(game->GetWindowName(), game->GetWindowWidth(), game->GetWindowHeight());
+	WE::WWindow* GameWindow = new WE::WWindow(game->GetWindowName(), game->GetWindowWidth(), game->GetWindowHeight());
 
 	
 

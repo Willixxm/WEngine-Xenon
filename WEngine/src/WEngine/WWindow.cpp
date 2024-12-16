@@ -1,11 +1,11 @@
-#include "WSDLWindow.h"
+#include "WWindow.h"
 #include <SDL.h>
 #include <iostream>
 
 
 namespace WE
 {
-	WSDLWindow::WSDLWindow(std::string wName, int wWidth, int wHeight)
+	WWindow::WWindow(std::string wName, int wWidth, int wHeight)
 	{
 		// INIT SDL
 		if (SDL_Init(SDL_INIT_VIDEO) < 0) std::cout << "failed to initialize video" << std::endl;
@@ -21,7 +21,7 @@ namespace WE
 
 	}
 
-	WSDLWindow::~WSDLWindow()
+	WWindow::~WWindow()
 	{
 		SDL_DestroyWindow(window);
 		window = nullptr;
