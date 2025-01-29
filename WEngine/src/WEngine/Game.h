@@ -1,34 +1,45 @@
 #pragma once
 
 #include "Core.h"
+#include "GameContext.h"
 #include <string>
+#include <memory>
+#include <chrono>
 
 namespace WE
 {
+	class GameContext;
+
 
 	class WE_API Game
 	{
+	public:
+		unsigned int windowWidth = 600; //default placeholder values
+		unsigned int windowHeight = 600;
+		const char* gameName = "Game";	
+		
 	protected:
-		int windowWidth = 600; //default placeholder values
-		int windowHeight = 600;
-		std::string gameName = "Game";
-	
+		std::unique_ptr<GameContext> gameContext;
+
+	private:
+		std::chrono::steady_clock::time_point startTime;
+		std::chrono::steady_clock::time_point lastFrameTime;
+
 		
 	public:
 		Game();
 		virtual ~Game();
 
 		virtual void Start();
+		void Update();
 
 
-		inline int GetWindowWidth() const { return windowWidth; }
-		inline int GetWindowHeight() const { return windowHeight; }
-		inline std::string GetWindowName() const { return gameName; }
+		bool stopGame = false;
 
 	};
 
 	// Defined by game
-	Game* CreateGame(); 
+	Game* CreateGame();
 
 
 }

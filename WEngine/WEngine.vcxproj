@@ -11,15 +11,18 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\WEngine\GameContext.h" />
     <ClInclude Include="src\WEngine.h" />
     <ClInclude Include="src\WEngine\EntryPoint.h" />
     <ClInclude Include="src\WEngine\Game.h" />
     <ClInclude Include="src\WEngine\Core.h" />
-    <ClInclude Include="src\WEngine\WWindow.h" />
+    <ClInclude Include="src\WEngine\Entity.h" />
+    <ClInclude Include="src\WEngine\WMath.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\WEngine\Game.cpp" />
-    <ClCompile Include="src\WEngine\WWindow.cpp" />
+    <ClCompile Include="src\WEngine\GameContext.cpp" />
+    <ClCompile Include="src\WEngine\Entity.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\SDL2\lib\x64\SDL2.dll" />
@@ -71,14 +74,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WE_PLATFORM_WINDOWS;WE_BUILD_DLL;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)WEngine\vendor\SDL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>Default</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)WEngine\vendor\box2d\include;$(SolutionDir)WEngine\vendor\SDL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)WEngine\vendor\SDL2\lib\x64;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)WEngine\vendor\box2d\lib;$(SolutionDir)WEngine\vendor\SDL2\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -89,16 +92,16 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WE_PLATFORM_WINDOWS;WE_BUILD_DLL;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)WEngine\vendor\SDL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>Default</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)WEngine\vendor\box2d\include;$(SolutionDir)WEngine\vendor\SDL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)WEngine\vendor\SDL2\lib\x64;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)WEngine\vendor\box2d\lib;$(SolutionDir)WEngine\vendor\SDL2\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

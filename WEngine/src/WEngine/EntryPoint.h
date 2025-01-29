@@ -7,28 +7,19 @@ extern WE::Game* WE::CreateGame();
 
 int main(int argc, char** argv)
 {
-	WE::Game* game = WE::CreateGame();
-
-	WE::WWindow* GameWindow = new WE::WWindow(game->GetWindowName(), game->GetWindowWidth(), game->GetWindowHeight());
-
+	
+	auto game = WE::CreateGame();
 	
 
 	game->Start();
 
-	while (true)
+	while (!game->stopGame)
 	{
-		//event system
-
-		//update entities
-
-		//update physics 
-
-		//render entities
-
-
+		game->Update(); 
+		
 	}
 
-	delete GameWindow;
+	
 	delete game;
 
 

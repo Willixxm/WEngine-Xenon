@@ -1,5 +1,6 @@
 #include <WEngine.h>
-#include <iostream>
+
+#include "Game/XennonLevel.h"
 
 class Xennon : public WE::Game
 {
@@ -17,10 +18,13 @@ public:
 
 	}
 
+	
 	void Start() override
 	{
-		std::cout << "xennon is running !" << std::endl;
-		std::cin;
+		Game::Start();
+		
+		XennonLevel* level = gameContext->GAME_InstantiateEntity<XennonLevel>(WE::WVec2(0, 0));
+		
 	}
 
 };

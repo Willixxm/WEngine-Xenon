@@ -27,7 +27,13 @@
     <ClInclude Include="src\WEngine\EntryPoint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\WEngine\WWindow.h">
+    <ClInclude Include="src\WEngine\GameContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\WEngine\Entity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\WEngine\WMath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -35,7 +41,10 @@
     <ClCompile Include="src\WEngine\Game.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\WEngine\WWindow.cpp">
+    <ClCompile Include="src\WEngine\Entity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\WEngine\GameContext.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
