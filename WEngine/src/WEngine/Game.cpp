@@ -32,7 +32,7 @@ namespace WE
 		gameContext->SYSTEM_UpdatePhysics(deltaTime);
 		gameContext->SYSTEM_UpdateEventSystem();
 		gameContext->SYSTEM_UpdateEntities(deltaTime);
-		gameContext->SYSTEM_Render();
+		gameContext->SYSTEM_Render(deltaTime);
 	}
 
 	

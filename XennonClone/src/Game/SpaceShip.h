@@ -1,6 +1,7 @@
 #pragma once
 
 #include "WEngine/Entity.h"
+#include "WEngine/InputVectorComponent.h"
 
 
 class SpaceShip : public WE::Entity
@@ -15,9 +16,10 @@ private:
 	const float fireCoolDown = 0.5f;
 
 
-
 private:
 	void HandleShoot(float deltaTime);
+	WE::InputVectorComponent inputVectorComponent;
+	void HandleMovement(float deltaTime);
 
 };
 

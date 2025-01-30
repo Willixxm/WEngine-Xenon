@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\WEngine\InputVectorComponent.h" />
     <ClInclude Include="src\WEngine\GameContext.h" />
     <ClInclude Include="src\WEngine.h" />
     <ClInclude Include="src\WEngine\EntryPoint.h" />
@@ -23,6 +24,10 @@
     <ClCompile Include="src\WEngine\Game.cpp" />
     <ClCompile Include="src\WEngine\GameContext.cpp" />
     <ClCompile Include="src\WEngine\Entity.cpp" />
+    <ClCompile Include="src\WEngine\glad.c" />
+    <ClCompile Include="src\WEngine\InputVectorComponent.cpp" />
+    <ClCompile Include="src\WEngine\stb_image.cpp" />
+    <ClCompile Include="vendor\GLAD\src\glad.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\SDL2\lib\x64\SDL2.dll" />
@@ -75,13 +80,13 @@
       <PreprocessorDefinitions>WE_PLATFORM_WINDOWS;WE_BUILD_DLL;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>Default</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)WEngine\vendor\box2d\include;$(SolutionDir)WEngine\vendor\SDL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)WEngine\vendor\box2d\include;$(SolutionDir)WEngine\vendor\SDL2\include;$(SolutionDir)WEngine\vendor\GLAD\include\glad;$(SolutionDir)WEngine\vendor\GLM\glm;$(SolutionDir)WEngine\vendor\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)WEngine\vendor\box2d\lib;$(SolutionDir)WEngine\vendor\SDL2\lib\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)WEngine\vendor\box2d\lib;$(SolutionDir)WEngine\vendor\SDL2\lib\x64;$(SolutionDir)WEngine\vendor\GLAD\src</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL2.lib;box2d.lib;glad.c;stb_image.cpp;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -93,7 +98,7 @@
       <PreprocessorDefinitions>WE_PLATFORM_WINDOWS;WE_BUILD_DLL;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>Default</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)WEngine\vendor\box2d\include;$(SolutionDir)WEngine\vendor\SDL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)WEngine\vendor\box2d\include;$(SolutionDir)WEngine\vendor\SDL2\include;$(SolutionDir)WEngine\vendor\GLAD\include;$(SolutionDir)WEngine\vendor\GLM\glm;$(SolutionDir)WEngine\vendor\stb_image;$(SolutionDir)WEngine\assets;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

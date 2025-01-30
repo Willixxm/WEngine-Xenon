@@ -3,6 +3,7 @@
 #include "WEngine/Entity.h"
 
 #include "SpaceShip.h"
+#include "BackGround.h"
 
 class XennonLevel : public WE::Entity
 {
@@ -13,7 +14,10 @@ public:
 
 		//GetGameContext()->GAME_SetWorldGravity(WE::WVec2(0.f, -9.8f));
 
-		SpaceShip* playerShip = GetGameContext()->GAME_InstantiateEntity<SpaceShip>(WE::WVec2(0, 20));
+		SpaceShip* playerShip = GetGameContext()->GAME_InstantiateEntity<SpaceShip>(WE::WVec2(0, 0));
+
+		BackGround* background1 = GetGameContext()->GAME_InstantiateEntity<BackGround>(WE::WVec2(0, 0));
+		BackGround* background2 = GetGameContext()->GAME_InstantiateEntity<BackGround>(WE::WVec2(0, 40));
 
 	}
 

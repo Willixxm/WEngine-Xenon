@@ -21,12 +21,18 @@
     <ClCompile Include="src\Game\SpaceShip.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Game\BackGround.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Game\SpaceShip.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Game\XennonLevel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\BackGround.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

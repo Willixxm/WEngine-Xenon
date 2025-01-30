@@ -3,6 +3,7 @@
 #include "Core.h"
 #include <memory>
 #include <vector>
+#include <string>
 #include <type_traits>
 #include "WMath.h"
 
@@ -30,8 +31,10 @@ namespace WE
 
 	enum WE_API INPUT_JoyAxisCode : int
 	{
-		Axis_MouseX = 0,
-		Axis_MouseY = 1
+		LeftStick_Horizontal  = 0,
+		LeftStick_Vertical    = 1,
+		RightStick_Horizontal = 2,
+		RightStick_Vertical   = 3
 
 	};
 
@@ -46,6 +49,8 @@ namespace WE
 
 	};
 
+
+
 	enum WE_API WBodyType : int
 	{
 		// zero mass, zero velocity, may be manually moved
@@ -56,6 +61,12 @@ namespace WE
 
 		// positive mass, velocity determined by forces, moved by solver
 		dynamicBody = 2,
+	};
+
+	enum WE_API WRenderType : int
+	{
+		Render_Surface = 0,
+		Render_Texture = 1,
 	};
 
 
@@ -84,7 +95,7 @@ namespace WE
 		void SYSTEM_UpdatePhysics(float deltaTime);
 		void SYSTEM_UpdateEventSystem();
 		void SYSTEM_UpdateEntities(float deltaTime);
-		void SYSTEM_Render();
+		void SYSTEM_Render(float deltaTime);
 
 		bool INPUT_GetKeyDown(INPUT_KeyCode);
 		WVec2 INPUT_GetMouseInput();
@@ -112,13 +123,22 @@ namespace WE
 		void On_InstantiateEntity(Entity*, WVec2 pos);
 		void GAME_DestroyEntity(Entity*);
 
-		void GAME_AddPhysComponentToEntity(Entity*, WBodyType bodyType, WVec2 size);
+		void PHYS_AddPhysComponentToEntity(Entity*, WBodyType bodyType, WVec2 size);
 		void PHYS_SetLocationOnPhysObj(WPhysBodyId id, WVec2 pos);
+		void PHYS_SetLinearVelocityOnPhysObj(WPhysBodyId id, WVec2 vel);
 
 		WVec2 PHYS_GetLocationOfPhysObj(WPhysBodyId id);
 
 	public:
-		void GAME_SetWorldGravity(WVec2);
+
+		void RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, float width, float height, WRenderType renderType, int layer);
+		void RENDER_RemoveRenderComponent(Entity* entity, WRenderType renderType);
+
+		void RENDER_SetAnimationParameters(Entity* entity, bool autoAnimate, float animationFps);
+		void RENDER_SetManualAnimationState(Entity* entity, float state_0to1);
+
+	public:
+		void PHYS_SetWorldGravity(WVec2);
 	
 	};
 }
