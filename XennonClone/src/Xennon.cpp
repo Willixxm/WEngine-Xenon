@@ -8,8 +8,8 @@ class Xennon : public WE::Game
 public:
 	Xennon()
 	{
-		windowWidth = 900;
-		windowHeight = 500;
+		windowWidth = 500;
+		windowHeight = windowWidth * 16/9;
 		gameName = "Xennon Clone";
 	}
 

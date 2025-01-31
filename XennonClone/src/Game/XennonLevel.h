@@ -22,6 +22,9 @@ public:
 		BackGround* background1 = GetGameContext()->GAME_InstantiateEntity<BackGround>(WE::WVec2(0, 0), WE::WVec2(0));
 		
 		Enemy* enemy = GetGameContext()->GAME_InstantiateEntity<Enemy>(WE::WVec2(0, 10), WE::WVec2(6));
+		Enemy* enemy1 = GetGameContext()->GAME_InstantiateEntity<Enemy>(WE::WVec2(4, 5), WE::WVec2(6));
+		Enemy* enemy2 = GetGameContext()->GAME_InstantiateEntity<Enemy>(WE::WVec2(-5, 20), WE::WVec2(6));
+		Enemy* enemy3 = GetGameContext()->GAME_InstantiateEntity<Enemy>(WE::WVec2(1, 15), WE::WVec2(6));
 	}
 
 	void Update(float deltaTime) override

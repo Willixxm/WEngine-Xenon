@@ -35,12 +35,13 @@ void PlayerProjectile::On_CollisionBegin(WE::Entity* entity, WE::WVec2 hitLocati
 {
 	WE::Entity::On_CollisionBegin(entity, hitLocation);
 
+	
 	Enemy* hitEnemy = dynamic_cast<Enemy*>(entity);
 	if (hitEnemy)
 	{
 		hitEnemy->DealDamage(projectileDmg);
 
-		GetGameContext()->GAME_InstantiateEntity<Explosion>(hitLocation, WE::WVec2(5));
+		GetGameContext()->GAME_InstantiateEntity<Explosion>(hitLocation, WE::WVec2(2));
 
 		Destroy();
 	}

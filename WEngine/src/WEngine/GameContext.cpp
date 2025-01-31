@@ -150,7 +150,6 @@ namespace WE
 		std::vector<Entity*> users;
 	};
 
-	
 
 	class GameContext::SDLWindow
 	{
@@ -159,12 +158,7 @@ namespace WE
 		{
 			// INIT SDL
 			SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
-			/*
-			SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-			SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-			*/
+			
 			SDL_JoystickEventState(true);
 			
 			OpenJoyStick();
@@ -311,8 +305,9 @@ namespace WE
 			cameraPosition = newPos;
 		}
 
-		void RenderFrame(float deltaTime)
+		void RenderFrameGL(float deltaTime)
 		{
+
 			/*
 			glClearColor(0.f, 0.f, 0.f, 0.f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -349,12 +344,16 @@ namespace WE
 
 			SDL_GL_SwapWindow(window);*/
 
+
 			
+			
+		}
 
-
+		void RenderFrameSDL(float deltaTime)
+		{
 			SDL_RenderClear(renderTarget);
 
-			
+
 			for (size_t i = 0; i < renderSDLEntities.size(); ++i)
 			{
 				if (renderSDLEntities[i].entity == nullptr)
@@ -362,8 +361,8 @@ namespace WE
 					std::cout << "NULL ENTITY \n";
 					continue;
 				}
-				
-				
+
+
 				if (renderSDLEntities[i].autoAnimate)
 				{
 					renderSDLEntities[i].params.AddAnimationTime(deltaTime);
@@ -372,7 +371,7 @@ namespace WE
 				{
 					renderSDLEntities[i].params.SetAnimationState(renderSDLEntities[i].manualAnimationState);
 				}
-				
+
 
 				WVec2 location = renderSDLEntities[i].entity->GetLocation();
 
@@ -392,15 +391,10 @@ namespace WE
 					SDL_RenderCopy(renderTarget, renderSDLEntities[i].texture, &renderSDLEntities[i].params.surfaceRect, NULL);
 				}
 
-
-				
-
 			}
 
 			SDL_RenderPresent(renderTarget);
-			
 		}
-
 
 		void AddToGLRender(Entity* entity, std::string textureFilePath)
 		{
@@ -416,7 +410,7 @@ namespace WE
 
 			while (true)
 			{
-				texture = GetTextureInfo(textureFilePath);
+				texture = GL_GetTextureInfo(textureFilePath);
 
 				if (texture.isValid)
 					break;
@@ -430,7 +424,7 @@ namespace WE
 				textureFilePath = BMP_PLACEHOLDER;
 			}
 
-			AddTextureUser(textureFilePath, entity);
+			GL_AddTextureUser(textureFilePath, entity);
 
 
 			RenderGLEntity2D newObj;
@@ -461,7 +455,7 @@ namespace WE
 				if (renderGLEntities[i].entity == nullptr)
 					std::cerr << "ERROR: Invalid entity in renderObjcets3D \n";
 
-				RemoveTextureUser(renderGLEntities[i].filePath, entity);
+				GL_RemoveTextureUser(renderGLEntities[i].filePath, entity);
 
 				glDeleteVertexArrays(1, &renderGLEntities[i].vao);
 
@@ -485,7 +479,7 @@ namespace WE
 
 			while (true)
 			{
-				surface = GetSurfaceInfo(filePath, hTiles, vTiles);
+				surface = SDL_GetSurfaceInfo(filePath, hTiles, vTiles);
 
 				if (surface.isValid)
 					break;
@@ -499,7 +493,7 @@ namespace WE
 				filePath = BMP_PLACEHOLDER;
 			}
 
-			AddSurfaceUser(filePath, entity);
+			SDL_AddSurfaceUser(filePath, entity);
 
 
 			RenderSDLEntity2D newEntity;
@@ -515,7 +509,7 @@ namespace WE
 			
 			
 			renderSDLEntities.push_back(newEntity);
-			OrderEntitiesByLayer();
+			SDL_OrderEntitiesByLayer();
 		}
 		void RemoveFromSDLRender(Entity* entity)
 		{
@@ -528,14 +522,14 @@ namespace WE
 				if (renderSDLEntities[i].entity == nullptr)
 					std::cerr << "ERROR: Invalid entity in renderObjcets3D \n";
 
-				RemoveSurfaceUser(renderSDLEntities[i].filepath, renderSDLEntities[i].entity);
+				SDL_RemoveSurfaceUser(renderSDLEntities[i].filepath, renderSDLEntities[i].entity);
 
 				renderSDLEntities.erase(renderSDLEntities.begin() + i);
 
 				--i;
 			}
 
-			OrderEntitiesByLayer();
+			SDL_OrderEntitiesByLayer();
 		}
 
 		void SetAnimationParameters(Entity* entity, bool autoAnimate, float animationFps)
@@ -574,7 +568,7 @@ namespace WE
 		}
 
 	private:
-		void AddTextureUser(const std::string& filepath, Entity* entity)
+		void GL_AddTextureUser(const std::string& filepath, Entity* entity)
 		{
 			for (size_t i = 0; i < LoadedTextures.size(); ++i)
 				if (filepath == LoadedTextures[i].filepath) //if texture is loaded
@@ -586,7 +580,7 @@ namespace WE
 					LoadedTextures[i].users.push_back(entity);
 				}
 		}
-		void RemoveTextureUser(const std::string& filepath, Entity* entity)
+		void GL_RemoveTextureUser(const std::string& filepath, Entity* entity)
 		{
 			for (size_t i = 0; i < LoadedTextures.size(); ++i)
 			{
@@ -604,10 +598,10 @@ namespace WE
 					}
 				}
 
-				UnloadUnusedTextures(LoadedTextures[i].filepath);
+				GL_UnloadUnusedTextures(LoadedTextures[i].filepath);
 			}
 		}
-		TextureInfo GetTextureInfo(const std::string& filepath)
+		TextureInfo GL_GetTextureInfo(const std::string& filepath)
 		{
 			//If texture is already parsed and loaded, return respective ID;
 			for (size_t i = 0; i < LoadedTextures.size(); ++i)
@@ -618,14 +612,14 @@ namespace WE
 			TextureInfo LoadedTexture;
 			LoadedTexture.filepath = filepath;
 
-			if (LoadFileIntoTexture(filepath, LoadedTexture))
+			if (GL_LoadFileIntoTexture(filepath, LoadedTexture))
 			{
 				LoadedTexture.isValid = true;
 				LoadedTextures.push_back(LoadedTexture);
 			}
 			return LoadedTexture;
 		}
-		bool LoadFileIntoTexture(const std::string& filepath, TextureInfo LoadedTexture)
+		bool GL_LoadFileIntoTexture(const std::string& filepath, TextureInfo LoadedTexture)
 		{
 			// load and generate the texture
 			int width, height, nrChannels;
@@ -660,7 +654,7 @@ namespace WE
 
 			return true;
 		}
-		void UnloadUnusedTextures(const std::string& filePath)
+		void GL_UnloadUnusedTextures(const std::string& filePath)
 		{
 			for (size_t i = 0; i < LoadedTextures.size(); ++i)
 			{
@@ -681,7 +675,7 @@ namespace WE
 			}
 		}
 
-		void AddSurfaceUser(const std::string& filepath, Entity* entity)
+		void SDL_AddSurfaceUser(const std::string& filepath, Entity* entity)
 		{
 
 			for (size_t i = 0; i < LoadedSurfaces.size(); ++i)
@@ -695,7 +689,7 @@ namespace WE
 				}
 
 		}
-		void RemoveSurfaceUser(const std::string& filepath, Entity* entity)
+		void SDL_RemoveSurfaceUser(const std::string& filepath, Entity* entity)
 		{
 			for (size_t i = 0; i < LoadedSurfaces.size(); ++i)
 			{
@@ -713,10 +707,10 @@ namespace WE
 					}
 				}
 
-				UnloadUnusedSurfaces(LoadedSurfaces[i].filepath);
+				SDL_UnloadUnusedSurfaces(LoadedSurfaces[i].filepath);
 			}
 		}
-		SurfaceInfo GetSurfaceInfo(const std::string& filepath, int hTiles, int vTiles)
+		SurfaceInfo SDL_GetSurfaceInfo(const std::string& filepath, int hTiles, int vTiles)
 		{
 			//If texture is already parsed and loaded, return respective ID;
 			for (size_t i = 0; i < LoadedSurfaces.size(); ++i)
@@ -728,7 +722,7 @@ namespace WE
 			LoadedSurface.filepath = filepath;
 			
 
-			if (LoadFileIntoSurface(filepath, LoadedSurface))
+			if (SDL_LoadFileIntoSurface(filepath, LoadedSurface))
 			{
 				std::cout << LOG_SURFACE_LOADED << "[" << LoadedSurface.filepath << "]\n";
 
@@ -745,7 +739,7 @@ namespace WE
 			}
 			return LoadedSurface;
 		}
-		bool LoadFileIntoSurface(const std::string& filepath, SurfaceInfo& LoadedSurface)
+		bool SDL_LoadFileIntoSurface(const std::string& filepath, SurfaceInfo& LoadedSurface)
 		{
 			SDL_Surface* surface = SDL_LoadBMP(filepath.c_str());
 			if (surface == NULL)
@@ -769,7 +763,7 @@ namespace WE
 				return true;
 			}
 		}
-		void UnloadUnusedSurfaces(const std::string& filePath)
+		void SDL_UnloadUnusedSurfaces(const std::string& filePath)
 		{
 			for (size_t i = 0; i < LoadedSurfaces.size(); ++i)
 			{
@@ -790,7 +784,7 @@ namespace WE
 			}
 		}
 
-		void OrderEntitiesByLayer()
+		void SDL_OrderEntitiesByLayer()
 		{
 			std::sort(renderSDLEntities.begin(), renderSDLEntities.end(),
 				[](const RenderSDLEntity2D& a, const RenderSDLEntity2D& b)
@@ -839,6 +833,8 @@ namespace WE
 		bool stopGame = false;
 
 	};
+
+
 
 	class GameContext::Box2D
 	{
@@ -1018,7 +1014,10 @@ namespace WE
 	}
 	void GameContext::SYSTEM_Render(float deltaTime)
 	{
-		windowPImpl->RenderFrame(deltaTime);
+		if (renderEngine == WRenderEngine::SDL)
+			windowPImpl->RenderFrameSDL(deltaTime);
+		else
+			windowPImpl->RenderFrameGL(deltaTime);
 	}
 
 	bool GameContext::INPUT_GetKeyDown(INPUT_KeyCode keyCode)
@@ -1077,9 +1076,9 @@ namespace WE
 		else
 			windowPImpl->AddToGLRender(entity, filePath);*/
 	}
-	void GameContext::RENDER_RemoveRenderComponent(Entity* entity, WRenderType renderType)
+	void GameContext::RENDER_RemoveRenderComponent(Entity* entity)
 	{
-		if (renderType == WRenderType::Render_Surface)
+		if (renderEngine == WRenderEngine::SDL)
 			windowPImpl->RemoveFromSDLRender(entity);
 		else
 			windowPImpl->RemoveFromGLRender(entity);

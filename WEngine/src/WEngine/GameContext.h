@@ -65,10 +65,10 @@ namespace WE
 		dynamicBody = 2,
 	};
 
-	enum WE_API WRenderType : int
+	enum WE_API WRenderEngine : bool
 	{
-		Render_Surface = 0,
-		Render_Texture = 1,
+		SDL = false,
+		OpenGL = true
 	};
 
 	class Game;
@@ -86,6 +86,8 @@ namespace WE
 	private:
 		class SDLWindow;
 		std::unique_ptr<SDLWindow> windowPImpl;
+
+		bool renderEngine = WRenderEngine::SDL;
 
 		class Box2D;
 		std::unique_ptr<Box2D> physicsPImpl;
@@ -138,7 +140,7 @@ namespace WE
 		void RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer, WVec2 sizeOverride);
 		void RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer);
 
-		void RENDER_RemoveRenderComponent(Entity* entity, WRenderType renderType);
+		void RENDER_RemoveRenderComponent(Entity* entity);
 
 		void RENDER_SetAnimationParameters(Entity* entity, bool autoAnimate, float animationFps);
 		void RENDER_SetAnimationTileParameters(Entity* entity, int tileOffset, int tileSpan);

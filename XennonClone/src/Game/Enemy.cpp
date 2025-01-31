@@ -1,5 +1,9 @@
 #include "Enemy.h"
 #include "WEngine/GameContext.h"
+#include "WEngine/Pawn.h"
+#include "PlayerProjectile.h"
+#include "Explosion.h"
+
 
 
 using namespace WE;
@@ -25,5 +29,17 @@ void Enemy::Update(float deltaTime)
 
 
 
+}
 
+
+void Enemy::DealDamage(float damage)
+{
+	Pawn::DealDamage(damage);
+
+
+
+
+	GetGameContext()->GAME_InstantiateEntity<Explosion>(GetLocation(), WE::WVec2(5));
+
+	Destroy();
 }
