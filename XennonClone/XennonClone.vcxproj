@@ -95,11 +95,17 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Game\Explosion.cpp" />
+    <ClCompile Include="src\Game\Enemy.cpp" />
+    <ClCompile Include="src\Game\PlayerProjectile.cpp" />
     <ClCompile Include="src\Game\BackGround.cpp" />
     <ClCompile Include="src\Game\SpaceShip.cpp" />
     <ClCompile Include="src\Xennon.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Game\Explosion.h" />
+    <ClInclude Include="src\Game\Enemy.h" />
+    <ClInclude Include="src\Game\PlayerProjectile.h" />
     <ClInclude Include="src\Game\BackGround.h" />
     <ClInclude Include="src\Game\SpaceShip.h" />
     <ClInclude Include="src\Game\XennonLevel.h" />

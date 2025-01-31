@@ -30,7 +30,7 @@ namespace WE
 		WVec2 lastInputVector = WVec2();
 
 	public:
-		float axisDeadZoneInner = 0.5f;
+		float axisDeadZoneInner = 0.1f;
 		float axisDeadZoneOutter = 0.1f;
 		bool preferController = true;
 

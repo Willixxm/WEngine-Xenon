@@ -17,15 +17,15 @@ namespace WE
 		bool joyButtons[24];
 
 		WVec2 mouseInputVector = WVec2(0);
-		bool keys[6];
+		bool keys[10];
 	};
 
 	enum WE_API INPUT_JoyButtonCode : int
 	{
-		ButtonFaceDown = 0,
-		ButtonFaceRight = 1,
-		ButtonFaceLeft = 2,
-		ButtonFaceUp = 3
+		FaceDown = 0,
+		FaceRight,
+		FaceLeft,
+		FaceUp
 
 	};
 
@@ -40,12 +40,14 @@ namespace WE
 
 	enum WE_API INPUT_KeyCode : int
 	{
-		Key_MouseLeft = 0,
-		Key_MouseRight = 1,
-		Key_W = 2,
-		Key_A = 3,
-		Key_S = 4,
-		Key_D = 5
+		MouseLeft = 0,
+		MouseRight,
+		W,
+		A,
+		S,
+		D,
+		Spacebar
+
 
 	};
 
@@ -68,7 +70,6 @@ namespace WE
 		Render_Surface = 0,
 		Render_Texture = 1,
 	};
-
 
 	class Game;
 	class Entity;
@@ -109,32 +110,38 @@ namespace WE
 
 	public:
 		template< class T >
-		T* GAME_InstantiateEntity(WVec2 pos)
+		T* GAME_InstantiateEntity(WVec2 pos, WVec2 size)
 		{
 			static_assert(std::is_base_of<Entity, T>::value, "T must be derived from Entity");
 			
 			T* newEntity = new T();
 
-			On_InstantiateEntity(newEntity, pos);
+			On_InstantiateEntity(newEntity, pos, size);
 
 			return newEntity;
 		}
 
-		void On_InstantiateEntity(Entity*, WVec2 pos);
+
+		void On_InstantiateEntity(Entity*, WVec2 pos, WVec2 size);
 		void GAME_DestroyEntity(Entity*);
 
-		void PHYS_AddPhysComponentToEntity(Entity*, WBodyType bodyType, WVec2 size);
+		void PHYS_AddPhysComponentToEntity(Entity*, WBodyType bodyType, WVec2 sizeOverride);
 		void PHYS_SetLocationOnPhysObj(WPhysBodyId id, WVec2 pos);
 		void PHYS_SetLinearVelocityOnPhysObj(WPhysBodyId id, WVec2 vel);
 
-		WVec2 PHYS_GetLocationOfPhysObj(WPhysBodyId id);
+		WVec2 SYSTEM_GetLocationOfPhysObj(WPhysBodyId id);
 
 	public:
+		void RENDER_SetOrthoCameraSize(float size);
+		void RENDER_SetOrthoCameraPosition(WVec2 newPos);
 
-		void RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, float width, float height, WRenderType renderType, int layer);
+		void RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer, WVec2 sizeOverride);
+		void RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer);
+
 		void RENDER_RemoveRenderComponent(Entity* entity, WRenderType renderType);
 
 		void RENDER_SetAnimationParameters(Entity* entity, bool autoAnimate, float animationFps);
+		void RENDER_SetAnimationTileParameters(Entity* entity, int tileOffset, int tileSpan);
 		void RENDER_SetManualAnimationState(Entity* entity, float state_0to1);
 
 	public:

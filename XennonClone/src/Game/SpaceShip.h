@@ -1,10 +1,10 @@
 #pragma once
 
-#include "WEngine/Entity.h"
+#include "WEngine/Pawn.h"
 #include "WEngine/InputVectorComponent.h"
 
 
-class SpaceShip : public WE::Entity
+class SpaceShip : public WE::Pawn
 {
 public:
 	
@@ -13,13 +13,15 @@ public:
 
 private:
 	float timeUntilNextShot = 0.f;
-	const float fireCoolDown = 0.5f;
-
+	const float fireCoolDown = 0.2f;
+	float moveSpeed = 10.f;
 
 private:
 	void HandleShoot(float deltaTime);
 	WE::InputVectorComponent inputVectorComponent;
 	void HandleMovement(float deltaTime);
 
+
+	void PrimaryFire();
 };
 

@@ -27,18 +27,25 @@ namespace WE
 
 	public:
 		Entity();
-		~Entity();
+		virtual ~Entity();
 
 
 	public:
 		WPhysBodyId bodyId;
 	private:
 		WVec2 position = WVec2(0.f);
+		WVec2 initialSize = WVec2(0.f);
 		int renderLayer = 0; 
+
+		float aliveTime = 0;
 
 	public:
 		WVec2 GetLocation();
 		void SetLocation(WVec2 pos);
+
+		WVec2 GetInitialSize() const { return initialSize; }
+
+		float GetTimeAlive() const { return aliveTime; }
 
 	private:
 		GameContext* gameContext = nullptr;
@@ -54,6 +61,9 @@ namespace WE
 
 		void Destroy();
 
+	public:
+
+		virtual void On_CollisionBegin(Entity* other, WVec2 point);
 
 		friend class GameContext; //to access and set gameContext variable on instantiation
 	};

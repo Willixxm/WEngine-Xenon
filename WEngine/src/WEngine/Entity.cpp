@@ -23,7 +23,9 @@ namespace WE
 	void Entity::Update(float deltaTime)
 	{
 		if (bodyId.isValid)
-			position = gameContext->PHYS_GetLocationOfPhysObj(bodyId);
+			position = gameContext->SYSTEM_GetLocationOfPhysObj(bodyId);
+
+		aliveTime += deltaTime;
 		
 	}
 
@@ -45,5 +47,8 @@ namespace WE
 
 		position = pos;
 	}
+
+	void Entity::On_CollisionBegin(Entity* other, WVec2 point) {}
+	
 }
 

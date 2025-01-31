@@ -13,6 +13,7 @@
 #include <SDL_events.h>
 #include <SDL_joystick.h>
 #include <box2d.h>
+#include <collision.h>
 #include <glad/glad.h>
 #include <glm.hpp>
 #include "stb_image.h"
@@ -62,19 +63,20 @@ namespace WE
 			tileHeight = texHeight / vTileCount;
 
 			nTiles = hTileCount * vTileCount;
+			tileSpan = nTiles;
 
 			CalcRect();
 		}
 
 		void CalcRect()
 		{
-			while (animationProgress > nTiles)
+			while (animationProgress > tileSpan)
 			{
-				animationProgress -= nTiles;
+				animationProgress -= tileSpan;
 			}
 			
-			int x = (int)animationProgress % hTileCount;
-			int y = (int)animationProgress / hTileCount;
+			int x = ((int)animationProgress + tileOffset) % hTileCount;
+			int y = ((int)animationProgress + tileOffset) / hTileCount;
 			
 
 			surfaceRect.x = x * tileWidth;
@@ -95,10 +97,10 @@ namespace WE
 		{
 			if (state0to1 < 0)
 				state0to1 = 0;
-			if (state0to1 > 1)
-				state0to1 = 1;
+			if (state0to1 >= 1)
+				state0to1 -= 0.001f;
 
-			animationProgress = state0to1 * (nTiles) -0.5f;
+			animationProgress = state0to1 * (tileSpan);
 
 			CalcRect();
 		}
@@ -110,6 +112,8 @@ namespace WE
 		int tileWidth = 0;
 		int tileHeight = 0;
 		int nTiles = 1;
+		int tileOffset = 0;
+		int tileSpan = nTiles;
 
 		float animationProgress = 0.f;
 		int currentTile = 0;
@@ -216,17 +220,21 @@ namespace WE
 						switch (windowEvent.key.keysym.sym)
 						{
 						case SDLK_w:
-							userInputs.keys[INPUT_KeyCode::Key_W] = windowEvent.key.state; 
+							userInputs.keys[INPUT_KeyCode::W] = windowEvent.key.state; 
 							break;
 						case SDLK_a:
-							userInputs.keys[INPUT_KeyCode::Key_A] = windowEvent.key.state;
+							userInputs.keys[INPUT_KeyCode::A] = windowEvent.key.state;
 							break;
 						case SDLK_s:
-							userInputs.keys[INPUT_KeyCode::Key_S] = windowEvent.key.state;
+							userInputs.keys[INPUT_KeyCode::S] = windowEvent.key.state;
 							break;
 						case SDLK_d:
-							userInputs.keys[INPUT_KeyCode::Key_D] = windowEvent.key.state;
+							userInputs.keys[INPUT_KeyCode::D] = windowEvent.key.state;
 							break;
+						case SDLK_SPACE:
+							userInputs.keys[INPUT_KeyCode::Spacebar] = windowEvent.key.state;
+							break;
+
 						}
 						break;
 
@@ -236,10 +244,10 @@ namespace WE
 						switch (windowEvent.button.button)
 						{
 						case 1:
-							userInputs.keys[INPUT_KeyCode::Key_MouseLeft] = windowEvent.button.state;
+							userInputs.keys[INPUT_KeyCode::MouseLeft] = windowEvent.button.state;
 							break;
 						case 2:
-							userInputs.keys[INPUT_KeyCode::Key_MouseRight] = windowEvent.button.state;
+							userInputs.keys[INPUT_KeyCode::MouseRight] = windowEvent.button.state;
 							break;
 						}
 						break;
@@ -294,6 +302,14 @@ namespace WE
 			return &userInputs;
 		}
 
+		void SetOrthoCameraSize(float size)
+		{
+			orthoCameraSize = size;
+		}
+		void SetOrthoCameraPosition(WVec2 newPos)
+		{
+			cameraPosition = newPos;
+		}
 
 		void RenderFrame(float deltaTime)
 		{
@@ -361,13 +377,23 @@ namespace WE
 				WVec2 location = renderSDLEntities[i].entity->GetLocation();
 
 				SDL_Rect EntityPosition;
-				EntityPosition.w = (renderSDLEntities[i].entityWidth) * 20;
-				EntityPosition.h = (renderSDLEntities[i].entityHeight) * 20;
-				EntityPosition.x = (windowWidth / 2) + (location.x * 20) - EntityPosition.w/2;
-				EntityPosition.y = (windowHeight / 2) - (location.y * 20) - EntityPosition.h / 2;
-				
 
-				SDL_RenderCopy(renderTarget, renderSDLEntities[i].texture, &renderSDLEntities[i].params.surfaceRect, &EntityPosition);
+				if (renderSDLEntities[i].entityHeight || renderSDLEntities[i].entityWidth)
+				{
+					EntityPosition.w = (renderSDLEntities[i].entityWidth) * windowHeight / orthoCameraSize;
+					EntityPosition.h = (renderSDLEntities[i].entityHeight) * windowHeight / orthoCameraSize;
+					EntityPosition.x = (windowWidth / 2) + ((location.x - cameraPosition.x) * windowHeight / orthoCameraSize) - EntityPosition.w / 2;
+					EntityPosition.y = (windowHeight / 2) - ((location.y - cameraPosition.y) * windowHeight / orthoCameraSize) - EntityPosition.h / 2;
+
+					SDL_RenderCopy(renderTarget, renderSDLEntities[i].texture, &renderSDLEntities[i].params.surfaceRect, &EntityPosition);
+				}
+				else
+				{
+					SDL_RenderCopy(renderTarget, renderSDLEntities[i].texture, &renderSDLEntities[i].params.surfaceRect, NULL);
+				}
+
+
+				
 
 			}
 
@@ -445,7 +471,7 @@ namespace WE
 			}
 		}
 
-		void AddToSDLRender(Entity* entity, std::string filePath, int hTiles, int vTiles, float width, float height, int renderLayer)
+		void AddToSDLRender(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, float width, float height, int renderLayer)
 		{
 			if (filePath == "")
 				filePath = BMP_PLACEHOLDER;
@@ -473,7 +499,7 @@ namespace WE
 				filePath = BMP_PLACEHOLDER;
 			}
 
-			AddTextureUser(filePath, entity);
+			AddSurfaceUser(filePath, entity);
 
 
 			RenderSDLEntity2D newEntity;
@@ -484,6 +510,8 @@ namespace WE
 			newEntity.renderLayer = renderLayer;
 			newEntity.entityWidth = width;
 			newEntity.entityHeight = height;
+			newEntity.params.tileOffset = tileOffset;
+			newEntity.params.tileSpan = tileSpan;
 			
 			
 			renderSDLEntities.push_back(newEntity);
@@ -520,6 +548,19 @@ namespace WE
 
 				renderSDLEntities[i].autoAnimate = autoAnimate;
 				renderSDLEntities[i].params.animationFps = animationFps;
+
+			}
+		}
+		void SetAnimationTileParameters(Entity* entity, int tileOffset, int tileSpan)
+		{
+			//check if entity is in render list
+			for (size_t i = 0; i < renderSDLEntities.size(); ++i)
+			{
+				if (renderSDLEntities[i].entity != entity)
+					continue;
+
+				renderSDLEntities[i].params.tileOffset = tileOffset;
+				renderSDLEntities[i].params.tileSpan = tileSpan;
 
 			}
 		}
@@ -642,6 +683,7 @@ namespace WE
 
 		void AddSurfaceUser(const std::string& filepath, Entity* entity)
 		{
+
 			for (size_t i = 0; i < LoadedSurfaces.size(); ++i)
 				if (filepath == LoadedSurfaces[i].filepath) //if surface is loaded
 				{
@@ -651,6 +693,7 @@ namespace WE
 
 					LoadedSurfaces[i].users.push_back(entity);
 				}
+
 		}
 		void RemoveSurfaceUser(const std::string& filepath, Entity* entity)
 		{
@@ -687,6 +730,8 @@ namespace WE
 
 			if (LoadFileIntoSurface(filepath, LoadedSurface))
 			{
+				std::cout << LOG_SURFACE_LOADED << "[" << LoadedSurface.filepath << "]\n";
+
 				LoadedSurface.isValid = true;
 
 
@@ -739,8 +784,9 @@ namespace WE
 					SDL_DestroyTexture(LoadedSurfaces[i].texture);
 
 					std::cout << LOG_SURFACE_UNLOAD << "[" << LoadedSurfaces[i].filepath << "]\n";
-				}
 
+					LoadedSurfaces.erase(LoadedSurfaces.begin() + i);
+				}
 			}
 		}
 
@@ -780,6 +826,9 @@ namespace WE
 		unsigned int windowWidth;
 		unsigned int windowHeight;
 
+		float orthoCameraSize = 10;
+		WVec2 cameraPosition = WVec2(0);
+
 		SDL_Event windowEvent = SDL_Event();
 		UserInputs userInputs;
 
@@ -806,7 +855,43 @@ namespace WE
 
 		void UpdatePhysicsWorld(float deltaTime)
 		{
+
 			b2World_Step(worldId, deltaTime, 4);
+			
+			HandleContacts();
+			
+		}
+
+		void HandleContacts()
+		{
+			b2ContactEvents contacts = b2World_GetContactEvents(worldId);
+
+			for (int i = 0; i < contacts.beginCount; ++i)
+			{
+				b2ContactBeginTouchEvent* beginTouchEvent = contacts.beginEvents + i;
+
+				b2Vec2 contactPoint = beginTouchEvent->manifold.points->point;
+
+				if (beginTouchEvent->manifold.pointCount > 1)
+				{
+					b2Vec2 contactPoint2 = (beginTouchEvent->manifold.points + 1)->point;
+
+					contactPoint = { (contactPoint.x + contactPoint2.x) / 2 , (contactPoint.y + contactPoint2.y) / 2 };
+				}
+
+				b2BodyId bodyA = b2Shape_GetBody(beginTouchEvent->shapeIdA);
+				b2BodyId bodyB = b2Shape_GetBody(beginTouchEvent->shapeIdB);
+
+				Entity* entityA = static_cast<Entity*>(b2Body_GetUserData(bodyA));
+				Entity* entityB = static_cast<Entity*>(b2Body_GetUserData(bodyB));
+
+				if (entityA && entityB)
+				{
+					WVec2 point = WVec2(contactPoint.x, contactPoint.y);
+					entityA->On_CollisionBegin(entityB, point);
+					entityB->On_CollisionBegin(entityA, point);
+				}
+			}
 		}
 
 		b2BodyId GetB2IdFromWId(WPhysBodyId WId)
@@ -858,12 +943,14 @@ namespace WE
 			b2World_SetGravity(worldId, gravity);
 		}
 
-		WPhysBodyId CreateObj(WVec2 pos, WBodyType bodyType, WVec2 boxSize)
+		WPhysBodyId CreateObj(Entity* entity, WBodyType bodyType, WVec2 boxSize)
 		{
 			b2BodyDef bodyDef = b2DefaultBodyDef();
 			bodyDef.type = (b2BodyType)bodyType;
+			WVec2 pos = entity->GetLocation();
 			bodyDef.position = { pos.x, pos.y};
 			bodyDef.fixedRotation = true;
+			bodyDef.userData = entity;
 			b2BodyId bodyId = b2CreateBody(worldId, &bodyDef);
 
 			if (boxSize.x || boxSize.y)
@@ -871,6 +958,7 @@ namespace WE
 				b2Polygon bodyBox = b2MakeBox(boxSize.x / 2, boxSize.y / 2);
 				b2ShapeDef boxShapeDef = b2DefaultShapeDef();
 				boxShapeDef.density = 1.f;
+				boxShapeDef.enableContactEvents = true;
 				//boxShapeDef.friction = 0.3f;
 
 				b2CreatePolygonShape(bodyId, &boxShapeDef, &bodyBox);
@@ -904,6 +992,9 @@ namespace WE
 
 	void GameContext::SYSTEM_UpdatePhysics(float deltaTime)
 	{
+		if (deltaTime > 1.f / 40.f)
+			deltaTime = 1.f / 40.f; //to prevent large simulation distances and tunneling as result. Simulation will slow down with framerates lower than 40 but "it's a sacrifice I'm willing to take" lol
+
 		physicsPImpl->UpdatePhysicsWorld(deltaTime);
 		for (size_t i = 0; i < instancedEntities.size(); ++i)
 		{
@@ -947,22 +1038,25 @@ namespace WE
 		return windowPImpl->GetUserInputs()->joyButtons[buttonCode];
 	}
 
-	void GameContext::PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType, WVec2 size)
+	void GameContext::PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType, WVec2 sizeOverride)
 	{
 		if (!entity->bodyId.isValid)
-			entity->bodyId = physicsPImpl->CreateObj(entity->GetLocation(), bodyType, size);
+			entity->bodyId = physicsPImpl->CreateObj(entity, bodyType, sizeOverride);
 	}
 
-	WVec2 GameContext::PHYS_GetLocationOfPhysObj(WPhysBodyId id)
+	WVec2 GameContext::SYSTEM_GetLocationOfPhysObj(WPhysBodyId id)
 	{
+		assert(id.isValid, "Tried accessing invalid physics obj!");
 		return physicsPImpl->GetObjPos(id);
 	}
 	void GameContext::PHYS_SetLinearVelocityOnPhysObj(WPhysBodyId id, WVec2 vel)
 	{
+		assert(id.isValid, "Tried accessing invalid physics obj!");
 		physicsPImpl->SetObjLinearVelocity(id, vel);
 	}
 	void GameContext::PHYS_SetLocationOnPhysObj(WPhysBodyId id, WVec2 pos)
 	{
+		assert(id.isValid, "Tried accessing invalid physics obj!");
 		physicsPImpl->SetObjPos(id, pos);
 	}
 	void GameContext::PHYS_SetWorldGravity(WVec2 vec)
@@ -970,13 +1064,18 @@ namespace WE
 		physicsPImpl->SetWorldGravity(vec);
 	}
 
-
-	void GameContext::RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, float width, float height, WRenderType renderType, int layer)
+	void GameContext::RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer)
 	{
-		if (renderType == WRenderType::Render_Surface)
-			windowPImpl->AddToSDLRender(entity, filePath, hTiles, vTiles, width, height, layer);
+		RENDER_AddRenderComponent(entity, filePath, hTiles, vTiles, tileOffset, tileSpan, layer, entity->GetInitialSize());
+	}
+	void GameContext::RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer, WVec2 sizeOverride)
+	{
+		windowPImpl->AddToSDLRender(entity, filePath, hTiles, vTiles, tileOffset, tileSpan, sizeOverride.x, sizeOverride.y, layer);
+
+		/*
+		if (renderType == WRenderType::Render_Surface)	
 		else
-			windowPImpl->AddToGLRender(entity, filePath);
+			windowPImpl->AddToGLRender(entity, filePath);*/
 	}
 	void GameContext::RENDER_RemoveRenderComponent(Entity* entity, WRenderType renderType)
 	{
@@ -989,16 +1088,29 @@ namespace WE
 	{
 		windowPImpl->SetAnimationParameters(entity, autoAnimate, animationFps);
 	}
+	void GameContext::RENDER_SetAnimationTileParameters(Entity* entity, int tileOffset, int tileSpan)
+	{
+		windowPImpl->SetAnimationTileParameters(entity, tileOffset, tileSpan);
+	}
 	void GameContext::RENDER_SetManualAnimationState(Entity* entity, float state_0to1)
 	{
 		windowPImpl->SetAnimationStateValue(entity, state_0to1);
 	}
 	
+	void GameContext::RENDER_SetOrthoCameraSize(float size)
+	{
+		windowPImpl->SetOrthoCameraSize(size);
+	}
+	void GameContext::RENDER_SetOrthoCameraPosition(WVec2 newPos)
+	{
+		windowPImpl->SetOrthoCameraPosition(newPos);
+	}
 
-	void GameContext::On_InstantiateEntity(Entity* entity, WVec2 pos)
+	void GameContext::On_InstantiateEntity(Entity* entity, WVec2 pos, WVec2 size)
 	{
 		entity->gameContext = this;
 		entity->SetLocation(pos);
+		entity->initialSize = size;
 
 		instancedEntities.push_back(entity);
 
@@ -1016,7 +1128,7 @@ namespace WE
 				physicsPImpl->DestroyObj(instancedEntities[i]->bodyId);
 			
 			windowPImpl->RemoveFromSDLRender(instancedEntities[i]);
-			windowPImpl->RemoveFromGLRender(instancedEntities[i]);
+			//windowPImpl->RemoveFromGLRender(instancedEntities[i]);
 
 			delete instancedEntities[i];
 			instancedEntities[i] = nullptr;
