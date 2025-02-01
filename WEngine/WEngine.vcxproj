@@ -82,17 +82,20 @@
       <PreprocessorDefinitions>WE_PLATFORM_WINDOWS;WE_BUILD_DLL;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>Default</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)WEngine\vendor\box2d\include;$(SolutionDir)WEngine\vendor\SDL2\include;$(SolutionDir)WEngine\vendor\GLAD\include;$(SolutionDir)WEngine\vendor\GLM\glm;$(SolutionDir)WEngine\vendor\stb_image;$(SolutionDir)WEngine\assets;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)WEngine\vendor\box2d\include;$(SolutionDir)WEngine\vendor\GLAD\include;$(SolutionDir)WEngine\vendor\stb_image;$(SolutionDir)WEngine\vendor\SDL3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)WEngine\vendor\box2d\lib;$(SolutionDir)WEngine\vendor\SDL2\lib\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)WEngine\vendor\box2d\lib;$(SolutionDir)WEngine\vendor\SDL3\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL3.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
+    <PostBuildEvent>
+      <Command>xcopy  "$(SolutionDir)bin\$(Configuration)-$(Platform)\$(ProjectName)\$(ProjectName).dll" "C:\dev\WEngine\bin\Release-x64\XennonClone" /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -103,16 +106,19 @@
       <PreprocessorDefinitions>WE_PLATFORM_WINDOWS;WE_BUILD_DLL;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>Default</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)WEngine\vendor\box2d\include;$(SolutionDir)WEngine\vendor\SDL2\include;$(SolutionDir)WEngine\vendor\GLAD\include;$(SolutionDir)WEngine\vendor\GLM\glm;$(SolutionDir)WEngine\vendor\stb_image;$(SolutionDir)WEngine\assets;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)WEngine\vendor\box2d\include;$(SolutionDir)WEngine\vendor\GLAD\include;$(SolutionDir)WEngine\vendor\stb_image;$(SolutionDir)WEngine\vendor\SDL3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)WEngine\vendor\box2d\lib;$(SolutionDir)WEngine\vendor\SDL2\lib\x64</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)WEngine\vendor\box2d\lib;$(SolutionDir)WEngine\vendor\SDL3\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL3.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy  "$(SolutionDir)bin\$(Configuration)-$(Platform)\$(ProjectName)\$(ProjectName).dll" "C:\dev\WEngine\bin\Release-x64\XennonClone" /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

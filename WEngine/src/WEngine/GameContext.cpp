@@ -9,13 +9,10 @@
 #include <cassert>
 #include <algorithm>
 
-#include <SDL.h>
-#include <SDL_events.h>
-#include <SDL_joystick.h>
+#include <SDL3/SDL.h>
 #include <box2d.h>
 #include <collision.h>
 #include <glad/glad.h>
-#include <glm.hpp>
 #include "stb_image.h"
 
 
@@ -119,7 +116,7 @@ namespace WE
 		int currentTile = 0;
 		float animationFps = 10.f;
 
-		SDL_Rect surfaceRect;
+		SDL_FRect surfaceRect;
 
 	};
 
@@ -159,15 +156,15 @@ namespace WE
 			// INIT SDL
 			SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
 			
-			SDL_JoystickEventState(true);
+			SDL_SetJoystickEventsEnabled(true);
 			
-			OpenJoyStick();
+			TryOpenFirstJoystick();
 
 
-			window = SDL_CreateWindow(windowName.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_OPENGL);
+			window = SDL_CreateWindow(windowName.c_str(), windowWidth, windowHeight, SDL_WINDOW_OPENGL);
 			assert(window, "failed to create window");
 
-			renderTarget = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+			renderTarget = SDL_CreateRenderer(window, NULL);
 
 
 			if (renderTarget == nullptr)
@@ -180,13 +177,16 @@ namespace WE
 
 		~SDLWindow()
 		{
+
+
+
 			SDL_DestroyWindow(window);
 			window = nullptr;
 
 			SDL_DestroyRenderer(renderTarget);
 			renderTarget = nullptr;
 
-			SDL_JoystickClose(playerJoyStick);
+			SDL_CloseJoystick(playerJoyStick);
 			playerJoyStick = nullptr;
 			
 
@@ -204,91 +204,94 @@ namespace WE
 			{
 				switch (windowEvent.type)
 				{	
-					case SDL_QUIT:
+					case SDL_EVENT_QUIT:
 						stopGame = true;
 						break;
 
 						
-					case SDL_KEYUP:
-					case SDL_KEYDOWN:
-						switch (windowEvent.key.keysym.sym)
+					case SDL_EVENT_KEY_UP:
+					case SDL_EVENT_KEY_DOWN:
+						switch (windowEvent.key.key)
 						{
-						case SDLK_w:
-							userInputs.keys[INPUT_KeyCode::W] = windowEvent.key.state; 
+						case SDLK_W:
+							userInputs.keys[INPUT_KeyCode::W] = windowEvent.key.down;
 							break;
-						case SDLK_a:
-							userInputs.keys[INPUT_KeyCode::A] = windowEvent.key.state;
+						case SDLK_A:
+							userInputs.keys[INPUT_KeyCode::A] = windowEvent.key.down;
 							break;
-						case SDLK_s:
-							userInputs.keys[INPUT_KeyCode::S] = windowEvent.key.state;
+						case SDLK_S:
+							userInputs.keys[INPUT_KeyCode::S] = windowEvent.key.down;
 							break;
-						case SDLK_d:
-							userInputs.keys[INPUT_KeyCode::D] = windowEvent.key.state;
+						case SDLK_D:
+							userInputs.keys[INPUT_KeyCode::D] = windowEvent.key.down;
 							break;
 						case SDLK_SPACE:
-							userInputs.keys[INPUT_KeyCode::Spacebar] = windowEvent.key.state;
+							userInputs.keys[INPUT_KeyCode::Spacebar] = windowEvent.key.down;
 							break;
 
 						}
 						break;
 
 
-					case SDL_MOUSEBUTTONDOWN:
-					case SDL_MOUSEBUTTONUP:
+					case SDL_EVENT_MOUSE_BUTTON_DOWN:
+					case SDL_EVENT_MOUSE_BUTTON_UP:
 						switch (windowEvent.button.button)
 						{
 						case 1:
-							userInputs.keys[INPUT_KeyCode::MouseLeft] = windowEvent.button.state;
+							userInputs.keys[INPUT_KeyCode::MouseLeft] = windowEvent.button.down;
 							break;
 						case 2:
-							userInputs.keys[INPUT_KeyCode::MouseRight] = windowEvent.button.state;
+							userInputs.keys[INPUT_KeyCode::MouseRight] = windowEvent.button.down;
 							break;
 						}
 						break;
 
 					
-					case SDL_MOUSEMOTION:
+					case SDL_EVENT_MOUSE_MOTION:
 						userInputs.mouseInputVector.x += windowEvent.motion.xrel;
 						userInputs.mouseInputVector.y += windowEvent.motion.yrel;
 						break;
 
 
-					case SDL_JOYAXISMOTION:
+					case SDL_EVENT_JOYSTICK_AXIS_MOTION:
 						if (windowEvent.jaxis.which < 12)
 							userInputs.joyAxis[windowEvent.jaxis.axis] = (float)windowEvent.jaxis.value / maxStickValue;
 						else
 							std::cerr << "axis index exceeded\n";
 						break;
 
-					case SDL_JOYBUTTONDOWN:
-					case SDL_JOYBUTTONUP:
+					case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
+					case SDL_EVENT_JOYSTICK_BUTTON_UP:
 						if (windowEvent.jbutton.button < 24)
-							userInputs.joyButtons[windowEvent.jbutton.button] = windowEvent.jbutton.state;
+							userInputs.joyButtons[windowEvent.jbutton.button] = windowEvent.jbutton.down;
 						else
 							std::cerr << "button index exceeded\n";
 						break;
 
-					case SDL_JOYDEVICEADDED:
-						OpenJoyStick();
+					case SDL_EVENT_JOYSTICK_ADDED:
+						TryOpenFirstJoystick();
 						break;
-					case SDL_JOYDEVICEREMOVED:
+					case SDL_EVENT_JOYSTICK_REMOVED:
 						if (windowEvent.jdevice.which == 0)
-							SDL_JoystickClose(playerJoyStick);
+							SDL_CloseJoystick(playerJoyStick);
 						playerJoyStick = nullptr;
 						std::cout << "Controller disconnected\n";
-						OpenJoyStick();
+						TryOpenFirstJoystick();
 						break;
 
 				} 
 			}
 		}
 
-		void OpenJoyStick()
+		void TryOpenFirstJoystick()
 		{
-			if (SDL_NumJoysticks() && playerJoyStick == nullptr)
+			if (SDL_HasJoystick() && !playerJoyStick)
 			{
-				playerJoyStick = SDL_JoystickOpen(0);
-				std::cout << SDL_JoystickNameForIndex(0) << " connected\n";
+				int nOfJoysticks = 0;
+				SDL_JoystickID* joySticks = SDL_GetJoysticks(&nOfJoysticks);
+				playerJoyStick = SDL_OpenJoystick(*joySticks);
+				std::cout << SDL_GetJoystickNameForID(*joySticks) << " connected\n";
+				SDL_free(joySticks);
 			}
 		}
 		UserInputs* GetUserInputs()
@@ -375,7 +378,7 @@ namespace WE
 
 				WVec2 location = renderSDLEntities[i].entity->GetLocation();
 
-				SDL_Rect EntityPosition;
+				SDL_FRect EntityPosition;
 
 				if (renderSDLEntities[i].entityHeight || renderSDLEntities[i].entityWidth)
 				{
@@ -384,11 +387,11 @@ namespace WE
 					EntityPosition.x = (windowWidth / 2) + ((location.x - cameraPosition.x) * windowHeight / orthoCameraSize) - EntityPosition.w / 2;
 					EntityPosition.y = (windowHeight / 2) - ((location.y - cameraPosition.y) * windowHeight / orthoCameraSize) - EntityPosition.h / 2;
 
-					SDL_RenderCopy(renderTarget, renderSDLEntities[i].texture, &renderSDLEntities[i].params.surfaceRect, &EntityPosition);
+					SDL_RenderTexture(renderTarget, renderSDLEntities[i].texture, &renderSDLEntities[i].params.surfaceRect, &EntityPosition);
 				}
 				else
 				{
-					SDL_RenderCopy(renderTarget, renderSDLEntities[i].texture, &renderSDLEntities[i].params.surfaceRect, NULL);
+					SDL_RenderTexture(renderTarget, renderSDLEntities[i].texture, &renderSDLEntities[i].params.surfaceRect, NULL);
 				}
 
 			}
@@ -396,6 +399,215 @@ namespace WE
 			SDL_RenderPresent(renderTarget);
 		}
 
+
+	public:
+		void AddToSDLRender(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, float width, float height, int renderLayer)
+		{
+			if (filePath == "")
+				filePath = BMP_PLACEHOLDER;
+
+			//return if entity is already in render list
+			for (size_t i = 0; i < renderSDLEntities.size(); ++i)
+				if (renderSDLEntities[i].entity == entity)
+					return;
+
+			SurfaceInfo surface;
+
+			while (true)
+			{
+				surface = GetTextureInfoSDL(filePath, hTiles, vTiles);
+
+				if (surface.isValid)
+					break;
+
+				if (filePath == BMP_PLACEHOLDER)
+				{
+					//placeholder texture not loading
+					std::cout << "ERROR: Couldn't load base placeholder texture! \n";
+					return;
+				}
+				filePath = BMP_PLACEHOLDER;
+			}
+
+			AddTextureUserSDL(filePath, entity);
+
+
+			RenderSDLEntity2D newEntity;
+			newEntity.entity = entity;
+			newEntity.filepath = filePath;
+			newEntity.texture = surface.texture;
+			newEntity.params = surface.params;
+			newEntity.renderLayer = renderLayer;
+			newEntity.entityWidth = width;
+			newEntity.entityHeight = height;
+			newEntity.params.tileOffset = tileOffset;
+			newEntity.params.tileSpan = tileSpan;
+
+
+			renderSDLEntities.push_back(newEntity);
+			SDL_OrderEntitiesByLayer();
+		}
+		void RemoveFromSDLRender(Entity* entity)
+		{
+			//check if entity is in render list
+			for (size_t i = 0; i < renderSDLEntities.size(); ++i)
+			{
+				if (renderSDLEntities[i].entity != entity)
+					continue;
+
+				if (renderSDLEntities[i].entity == nullptr)
+					std::cerr << "ERROR: Invalid entity in renderObjcets3D \n";
+
+				RemoveTextureUserSDL(renderSDLEntities[i].filepath, renderSDLEntities[i].entity);
+
+				renderSDLEntities.erase(renderSDLEntities.begin() + i);
+
+				--i;
+			}
+
+			SDL_OrderEntitiesByLayer();
+		}
+
+	private:
+		void AddTextureUserSDL(const std::string& filepath, Entity* entity)
+		{
+
+			for (size_t i = 0; i < LoadedSurfaces.size(); ++i)
+				if (filepath == LoadedSurfaces[i].filepath) //if surface is loaded
+				{
+					//add entity to user list if it isn't already
+					for (size_t j = 0; j < LoadedSurfaces[i].users.size(); ++j)
+						if (LoadedSurfaces[i].users[j] == entity) return;
+
+					LoadedSurfaces[i].users.push_back(entity);
+				}
+
+		}
+		void RemoveTextureUserSDL(const std::string& filepath, Entity* entity)
+		{
+			for (size_t i = 0; i < LoadedSurfaces.size(); ++i)
+			{
+				if (filepath != LoadedSurfaces[i].filepath)
+					continue;
+
+				//removes entity from users or invalid entities if entity == nullptr  
+				for (size_t j = 0; j < LoadedSurfaces[i].users.size(); ++j)
+				{
+					if (LoadedSurfaces[i].users[j] == entity)
+					{
+						LoadedSurfaces[i].users.erase(LoadedSurfaces[i].users.begin() + j);
+						--j;
+						continue;
+					}
+				}
+
+				UnloadUnusedTexturesSDL(LoadedSurfaces[i].filepath);
+			}
+		}
+		SurfaceInfo GetTextureInfoSDL(const std::string& filepath, int hTiles, int vTiles)
+		{
+			//If texture is already parsed and loaded, return respective ID;
+			for (size_t i = 0; i < LoadedSurfaces.size(); ++i)
+				if (filepath == LoadedSurfaces[i].filepath)
+					return LoadedSurfaces[i];
+
+			//Texture with this filepath not yet loaded:
+			SurfaceInfo LoadedSurface;
+			LoadedSurface.filepath = filepath;
+
+
+			if (LoadTextureFileSDL(filepath, LoadedSurface))
+			{
+				std::cout << LOG_SURFACE_LOADED << "[" << LoadedSurface.filepath << "]\n";
+
+				LoadedSurface.isValid = true;
+
+
+				float tWidth;
+				float tHeight;
+
+				SDL_GetTextureSize(LoadedSurface.texture, &tWidth, &tHeight);
+
+				LoadedSurface.params.SetParams(hTiles, vTiles, tWidth, tHeight);
+
+				LoadedSurfaces.push_back(LoadedSurface);
+			}
+			return LoadedSurface;
+		}
+		bool LoadTextureFileSDL(const std::string& filepath, SurfaceInfo& LoadedSurface)
+		{
+			SDL_Surface* surface = SDL_LoadBMP(filepath.c_str());
+			if (surface == NULL)
+			{
+				std::cout << LOG_SURFACE_FAILED << "[" << filepath.c_str() << "]\n";
+
+				SDL_DestroySurface(surface);
+				return false;
+			}
+			else
+			{
+				SDL_SetSurfaceColorKey(surface, true, SDL_MapSurfaceRGB(surface, 255, 0, 255));
+
+				LoadedSurface.texture = SDL_CreateTextureFromSurface(renderTarget, surface);
+				SDL_SetTextureScaleMode(LoadedSurface.texture, SDL_ScaleMode::SDL_SCALEMODE_NEAREST);
+
+
+
+				SDL_DestroySurface(surface);
+
+				if (LoadedSurface.texture == NULL)
+					return false;
+
+				return true;
+			}
+		}
+		void UnloadUnusedTexturesSDL(const std::string& filePath)
+		{
+			for (size_t i = 0; i < LoadedSurfaces.size(); ++i)
+			{
+				if (filePath != "" && filePath != LoadedSurfaces[i].filepath)
+					continue;
+
+				if (LoadedSurfaces[i].users.size() != 0)
+					continue;
+
+				if (LoadedSurfaces[i].texture != NULL)
+				{
+					SDL_DestroyTexture(LoadedSurfaces[i].texture);
+
+					std::cout << LOG_SURFACE_UNLOAD << "[" << LoadedSurfaces[i].filepath << "]\n";
+
+					LoadedSurfaces.erase(LoadedSurfaces.begin() + i);
+					break;
+				}
+			}
+		}
+		void UnloadAllTexturesSDL()
+		{
+			for (size_t i = 0; i < LoadedSurfaces.size(); ++i)
+			{
+				SDL_DestroyTexture(LoadedSurfaces[i].texture);
+
+				std::cout << LOG_SURFACE_UNLOAD << "[" << LoadedSurfaces[i].filepath << "]\n";
+
+				LoadedSurfaces.erase(LoadedSurfaces.begin() + i);
+
+				--i;
+			}
+		}
+
+		void SDL_OrderEntitiesByLayer()
+		{
+			std::sort(renderSDLEntities.begin(), renderSDLEntities.end(),
+				[](const RenderSDLEntity2D& a, const RenderSDLEntity2D& b)
+				{
+					return a.renderLayer < b.renderLayer;
+				});
+		}
+
+
+		
+	public:
 		void AddToGLRender(Entity* entity, std::string textureFilePath)
 		{
 			if (textureFilePath == "")
@@ -410,7 +622,7 @@ namespace WE
 
 			while (true)
 			{
-				texture = GL_GetTextureInfo(textureFilePath);
+				texture = GetTextureInfoGL(textureFilePath);
 
 				if (texture.isValid)
 					break;
@@ -424,7 +636,7 @@ namespace WE
 				textureFilePath = BMP_PLACEHOLDER;
 			}
 
-			GL_AddTextureUser(textureFilePath, entity);
+			AddTextureUserSDL(textureFilePath, entity);
 
 
 			RenderGLEntity2D newObj;
@@ -455,7 +667,7 @@ namespace WE
 				if (renderGLEntities[i].entity == nullptr)
 					std::cerr << "ERROR: Invalid entity in renderObjcets3D \n";
 
-				GL_RemoveTextureUser(renderGLEntities[i].filePath, entity);
+				RemoveTextureUserGL(renderGLEntities[i].filePath, entity);
 
 				glDeleteVertexArrays(1, &renderGLEntities[i].vao);
 
@@ -465,110 +677,8 @@ namespace WE
 			}
 		}
 
-		void AddToSDLRender(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, float width, float height, int renderLayer)
-		{
-			if (filePath == "")
-				filePath = BMP_PLACEHOLDER;
-
-			//return if entity is already in render list
-			for (size_t i = 0; i < renderSDLEntities.size(); ++i)
-				if (renderSDLEntities[i].entity == entity)
-					return;
-
-			SurfaceInfo surface;
-
-			while (true)
-			{
-				surface = SDL_GetSurfaceInfo(filePath, hTiles, vTiles);
-
-				if (surface.isValid)
-					break;
-
-				if (filePath == BMP_PLACEHOLDER)
-				{
-					//placeholder texture not loading
-					std::cout << "ERROR: Couldn't load base placeholder texture! \n";
-					return;
-				}
-				filePath = BMP_PLACEHOLDER;
-			}
-
-			SDL_AddSurfaceUser(filePath, entity);
-
-
-			RenderSDLEntity2D newEntity;
-			newEntity.entity = entity;
-			newEntity.filepath = filePath;
-			newEntity.texture = surface.texture;
-			newEntity.params = surface.params;	
-			newEntity.renderLayer = renderLayer;
-			newEntity.entityWidth = width;
-			newEntity.entityHeight = height;
-			newEntity.params.tileOffset = tileOffset;
-			newEntity.params.tileSpan = tileSpan;
-			
-			
-			renderSDLEntities.push_back(newEntity);
-			SDL_OrderEntitiesByLayer();
-		}
-		void RemoveFromSDLRender(Entity* entity)
-		{
-			//check if entity is in render list
-			for (size_t i = 0; i < renderSDLEntities.size(); ++i)
-			{
-				if (renderSDLEntities[i].entity != entity)
-					continue;
-
-				if (renderSDLEntities[i].entity == nullptr)
-					std::cerr << "ERROR: Invalid entity in renderObjcets3D \n";
-
-				SDL_RemoveSurfaceUser(renderSDLEntities[i].filepath, renderSDLEntities[i].entity);
-
-				renderSDLEntities.erase(renderSDLEntities.begin() + i);
-
-				--i;
-			}
-
-			SDL_OrderEntitiesByLayer();
-		}
-
-		void SetAnimationParameters(Entity* entity, bool autoAnimate, float animationFps)
-		{
-			//check if entity is in render list
-			for (size_t i = 0; i < renderSDLEntities.size(); ++i)
-			{
-				if (renderSDLEntities[i].entity != entity)
-					continue;
-
-				renderSDLEntities[i].autoAnimate = autoAnimate;
-				renderSDLEntities[i].params.animationFps = animationFps;
-
-			}
-		}
-		void SetAnimationTileParameters(Entity* entity, int tileOffset, int tileSpan)
-		{
-			//check if entity is in render list
-			for (size_t i = 0; i < renderSDLEntities.size(); ++i)
-			{
-				if (renderSDLEntities[i].entity != entity)
-					continue;
-
-				renderSDLEntities[i].params.tileOffset = tileOffset;
-				renderSDLEntities[i].params.tileSpan = tileSpan;
-
-			}
-		}
-		void SetAnimationStateValue(Entity* entity, float state_0to1)
-		{
-			for (size_t i = 0; i < renderSDLEntities.size(); ++i)
-			{
-				if (renderSDLEntities[i].entity == entity)
-					renderSDLEntities[i].manualAnimationState = state_0to1;
-			}
-		}
-
 	private:
-		void GL_AddTextureUser(const std::string& filepath, Entity* entity)
+		void AddTextureUserGL(const std::string& filepath, Entity* entity)
 		{
 			for (size_t i = 0; i < LoadedTextures.size(); ++i)
 				if (filepath == LoadedTextures[i].filepath) //if texture is loaded
@@ -580,7 +690,7 @@ namespace WE
 					LoadedTextures[i].users.push_back(entity);
 				}
 		}
-		void GL_RemoveTextureUser(const std::string& filepath, Entity* entity)
+		void RemoveTextureUserGL(const std::string& filepath, Entity* entity)
 		{
 			for (size_t i = 0; i < LoadedTextures.size(); ++i)
 			{
@@ -598,10 +708,10 @@ namespace WE
 					}
 				}
 
-				GL_UnloadUnusedTextures(LoadedTextures[i].filepath);
+				UnloadUnusedTexturesGL(LoadedTextures[i].filepath);
 			}
 		}
-		TextureInfo GL_GetTextureInfo(const std::string& filepath)
+		TextureInfo GetTextureInfoGL(const std::string& filepath)
 		{
 			//If texture is already parsed and loaded, return respective ID;
 			for (size_t i = 0; i < LoadedTextures.size(); ++i)
@@ -612,14 +722,14 @@ namespace WE
 			TextureInfo LoadedTexture;
 			LoadedTexture.filepath = filepath;
 
-			if (GL_LoadFileIntoTexture(filepath, LoadedTexture))
+			if (LoadTextureFileGL(filepath, LoadedTexture))
 			{
 				LoadedTexture.isValid = true;
 				LoadedTextures.push_back(LoadedTexture);
 			}
 			return LoadedTexture;
 		}
-		bool GL_LoadFileIntoTexture(const std::string& filepath, TextureInfo LoadedTexture)
+		bool LoadTextureFileGL(const std::string& filepath, TextureInfo LoadedTexture)
 		{
 			// load and generate the texture
 			int width, height, nrChannels;
@@ -654,15 +764,10 @@ namespace WE
 
 			return true;
 		}
-		void GL_UnloadUnusedTextures(const std::string& filePath)
+		void UnloadUnusedTexturesGL(const std::string& filePath)
 		{
 			for (size_t i = 0; i < LoadedTextures.size(); ++i)
 			{
-				if (filePath != "" && filePath != LoadedTextures[i].filepath)
-					continue;
-
-				if (LoadedTextures[i].users.size() != 0)
-					continue;
 
 				if (LoadedTextures[i].tex)
 				{
@@ -672,125 +777,62 @@ namespace WE
 					std::cout << LOG_TEXTURE_UNLOAD << "[" << LoadedTextures[i].filepath << "]\n";
 				}
 
+				LoadedTextures.erase(LoadedTextures.begin() + i);
+
+				--i;
+			}
+		}
+		void UnloadAllTexturesGL()
+		{
+			for (size_t i = 0; i < LoadedTextures.size(); ++i)
+			{
+				glDeleteTextures(1, &LoadedTextures[i].tex);
+				LoadedTextures[i].tex = 0;
+
+				std::cout << LOG_TEXTURE_UNLOAD << "[" << LoadedTextures[i].filepath << "]\n";
+
+				LoadedTextures.erase(LoadedTextures.begin() + i);
+
+				--i;
 			}
 		}
 
-		void SDL_AddSurfaceUser(const std::string& filepath, Entity* entity)
+
+
+	public:
+		void SetAnimationParameters(Entity* entity, bool autoAnimate, float animationFps)
 		{
-
-			for (size_t i = 0; i < LoadedSurfaces.size(); ++i)
-				if (filepath == LoadedSurfaces[i].filepath) //if surface is loaded
-				{
-					//add entity to user list if it isn't already
-					for (size_t j = 0; j < LoadedSurfaces[i].users.size(); ++j)
-						if (LoadedSurfaces[i].users[j] == entity) return;
-
-					LoadedSurfaces[i].users.push_back(entity);
-				}
-
-		}
-		void SDL_RemoveSurfaceUser(const std::string& filepath, Entity* entity)
-		{
-			for (size_t i = 0; i < LoadedSurfaces.size(); ++i)
+			//check if entity is in render list
+			for (size_t i = 0; i < renderSDLEntities.size(); ++i)
 			{
-				if (filepath != LoadedSurfaces[i].filepath)
+				if (renderSDLEntities[i].entity != entity)
 					continue;
 
-				//removes entity from users or invalid entities if entity == nullptr  
-				for (size_t j = 0; j < LoadedSurfaces[i].users.size(); ++j)
-				{
-					if (LoadedSurfaces[i].users[j] == entity)
-					{
-						LoadedSurfaces[i].users.erase(LoadedSurfaces[i].users.begin() + j);
-						--j;
-						continue;
-					}
-				}
+				renderSDLEntities[i].autoAnimate = autoAnimate;
+				renderSDLEntities[i].params.animationFps = animationFps;
 
-				SDL_UnloadUnusedSurfaces(LoadedSurfaces[i].filepath);
 			}
 		}
-		SurfaceInfo SDL_GetSurfaceInfo(const std::string& filepath, int hTiles, int vTiles)
+		void SetAnimationTileParameters(Entity* entity, int tileOffset, int tileSpan)
 		{
-			//If texture is already parsed and loaded, return respective ID;
-			for (size_t i = 0; i < LoadedSurfaces.size(); ++i)
-				if (filepath == LoadedSurfaces[i].filepath)
-					return LoadedSurfaces[i];
-
-			//Texture with this filepath not yet loaded:
-			SurfaceInfo LoadedSurface;
-			LoadedSurface.filepath = filepath;
-			
-
-			if (SDL_LoadFileIntoSurface(filepath, LoadedSurface))
+			//check if entity is in render list
+			for (size_t i = 0; i < renderSDLEntities.size(); ++i)
 			{
-				std::cout << LOG_SURFACE_LOADED << "[" << LoadedSurface.filepath << "]\n";
-
-				LoadedSurface.isValid = true;
-
-
-				int tWidth;
-				int tHeight;
-
-				SDL_QueryTexture(LoadedSurface.texture, NULL, NULL, &tWidth, &tHeight);
-				LoadedSurface.params.SetParams(hTiles, vTiles, tWidth, tHeight);
-
-				LoadedSurfaces.push_back(LoadedSurface);
-			}
-			return LoadedSurface;
-		}
-		bool SDL_LoadFileIntoSurface(const std::string& filepath, SurfaceInfo& LoadedSurface)
-		{
-			SDL_Surface* surface = SDL_LoadBMP(filepath.c_str());
-			if (surface == NULL)
-			{
-				std::cout << LOG_SURFACE_FAILED << "[" << filepath.c_str() << "]\n";
-
-				SDL_FreeSurface(surface);
-				return false;
-			}
-			else
-			{
-				SDL_SetColorKey(surface, SDL_TRUE, SDL_MapRGB(surface->format, 255, 0, 255));
-
-				LoadedSurface.texture = SDL_CreateTextureFromSurface(renderTarget, surface);
-
-				SDL_FreeSurface(surface);
-
-				if (LoadedSurface.texture == NULL)
-					return false;
-				
-				return true;
-			}
-		}
-		void SDL_UnloadUnusedSurfaces(const std::string& filePath)
-		{
-			for (size_t i = 0; i < LoadedSurfaces.size(); ++i)
-			{
-				if (filePath != "" && filePath != LoadedSurfaces[i].filepath)
+				if (renderSDLEntities[i].entity != entity)
 					continue;
 
-				if (LoadedSurfaces[i].users.size() != 0)
-					continue;
+				renderSDLEntities[i].params.tileOffset = tileOffset;
+				renderSDLEntities[i].params.tileSpan = tileSpan;
 
-				if (LoadedSurfaces[i].texture != NULL)
-				{
-					SDL_DestroyTexture(LoadedSurfaces[i].texture);
-
-					std::cout << LOG_SURFACE_UNLOAD << "[" << LoadedSurfaces[i].filepath << "]\n";
-
-					LoadedSurfaces.erase(LoadedSurfaces.begin() + i);
-				}
 			}
 		}
-
-		void SDL_OrderEntitiesByLayer()
+		void SetAnimationStateValue(Entity* entity, float state_0to1)
 		{
-			std::sort(renderSDLEntities.begin(), renderSDLEntities.end(),
-				[](const RenderSDLEntity2D& a, const RenderSDLEntity2D& b)
-				{
-					return a.renderLayer < b.renderLayer;
-				});
+			for (size_t i = 0; i < renderSDLEntities.size(); ++i)
+			{
+				if (renderSDLEntities[i].entity == entity)
+					renderSDLEntities[i].manualAnimationState = state_0to1;
+			}
 		}
 
 		
