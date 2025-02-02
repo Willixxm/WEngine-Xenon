@@ -178,7 +178,8 @@ namespace WE
 		~SDLWindow()
 		{
 
-
+			UnloadAllTexturesGL();
+			UnloadAllTexturesSDL();
 
 			SDL_DestroyWindow(window);
 			window = nullptr;
@@ -501,7 +502,8 @@ namespace WE
 					}
 				}
 
-				UnloadUnusedTexturesSDL(LoadedSurfaces[i].filepath);
+				if(autoUnloadAssetIfUnused)
+					UnloadUnusedTexturesSDL(LoadedSurfaces[i].filepath);
 			}
 		}
 		SurfaceInfo GetTextureInfoSDL(const std::string& filepath, int hTiles, int vTiles)
@@ -708,7 +710,8 @@ namespace WE
 					}
 				}
 
-				UnloadUnusedTexturesGL(LoadedTextures[i].filepath);
+				if (autoUnloadAssetIfUnused)
+					UnloadUnusedTexturesGL(LoadedTextures[i].filepath);
 			}
 		}
 		TextureInfo GetTextureInfoGL(const std::string& filepath)
@@ -873,6 +876,7 @@ namespace WE
 
 	public:
 		bool stopGame = false;
+		bool autoUnloadAssetIfUnused = true;
 
 	};
 
@@ -981,7 +985,7 @@ namespace WE
 			b2World_SetGravity(worldId, gravity);
 		}
 
-		WPhysBodyId CreateObj(Entity* entity, WBodyType bodyType, WVec2 boxSize)
+		WPhysBodyId CreateObj(Entity* entity, WBodyType bodyType, WVec2 boxSize, uint32_t collisionLayer, uint32_t collidesWith)
 		{
 			b2BodyDef bodyDef = b2DefaultBodyDef();
 			bodyDef.type = (b2BodyType)bodyType;
@@ -997,7 +1001,11 @@ namespace WE
 				b2ShapeDef boxShapeDef = b2DefaultShapeDef();
 				boxShapeDef.density = 1.f;
 				boxShapeDef.enableContactEvents = true;
-				//boxShapeDef.friction = 0.3f;
+				
+				boxShapeDef.filter.categoryBits = collisionLayer;
+				boxShapeDef.filter.maskBits = collidesWith;
+
+				boxShapeDef.friction = 0.1f;
 
 				b2CreatePolygonShape(bodyId, &boxShapeDef, &bodyBox);
 			}
@@ -1044,7 +1052,11 @@ namespace WE
 	{
 		windowPImpl->UpdateEvents();
 		if (windowPImpl->stopGame)
+		{
+			SYSTEM_DestroyAllEntities();
 			game->stopGame = true;
+		}
+			
 			
 	}
 	void GameContext::SYSTEM_UpdateEntities(float deltaTime)
@@ -1079,10 +1091,14 @@ namespace WE
 		return windowPImpl->GetUserInputs()->joyButtons[buttonCode];
 	}
 
-	void GameContext::PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType, WVec2 sizeOverride)
+	void GameContext::PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType)
+	{ 
+		PHYS_AddPhysComponentToEntity(entity, bodyType, entity->GetInitialSize(), 0, 0); 
+	}
+	void GameContext::PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType, WVec2 sizeOverride, uint32_t collisionLayer, uint32_t collidesWith)
 	{
 		if (!entity->bodyId.isValid)
-			entity->bodyId = physicsPImpl->CreateObj(entity, bodyType, sizeOverride);
+			entity->bodyId = physicsPImpl->CreateObj(entity, bodyType, sizeOverride, collisionLayer, collidesWith);
 	}
 
 	WVec2 GameContext::SYSTEM_GetLocationOfPhysObj(WPhysBodyId id)
@@ -1177,5 +1193,25 @@ namespace WE
 
 		}
 	}
+	void GameContext::SYSTEM_DestroyAllEntities()
+	{
+		for (size_t i = 0; i < instancedEntities.size(); ++i)
+		{
+			if (instancedEntities[i]->bodyId.isValid)
+				physicsPImpl->DestroyObj(instancedEntities[i]->bodyId);
 
+			windowPImpl->RemoveFromSDLRender(instancedEntities[i]);
+			//windowPImpl->RemoveFromGLRender(instancedEntities[i]);
+
+			delete instancedEntities[i];
+			instancedEntities[i] = nullptr;
+			instancedEntities.erase(instancedEntities.begin() + i);
+		}
+	}
+
+
+	void GameContext::MEMORY_SetAutoUnloadAssetIfUnused(bool enabled)
+	{
+		windowPImpl->autoUnloadAssetIfUnused = enabled;
+	}
 }

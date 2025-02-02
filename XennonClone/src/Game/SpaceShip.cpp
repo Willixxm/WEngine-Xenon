@@ -13,7 +13,7 @@ void SpaceShip::Start()
 {
 	Pawn::Start();
 
-	GetGameContext()->PHYS_AddPhysComponentToEntity(this, WE::WBodyType::dynamicBody, GetInitialSize()*0.75f);
+	GetGameContext()->PHYS_AddPhysComponentToEntity(this, WE::WBodyType::dynamicBody, GetInitialSize()*0.75f, WCollisionLayer::Layer1, WCollisionLayer::Layer2);
 	GetGameContext()->RENDER_AddRenderComponent(this, "graphics/Ship2.bmp", 7, 3, 0, 7, 0);
 	GetGameContext()->RENDER_SetAnimationParameters(this, false, 2.f);
 
@@ -74,7 +74,7 @@ void SpaceShip::HandleMovement(float deltaTime)
 
 void SpaceShip::PrimaryFire()
 {
-	GetGameContext()->GAME_InstantiateEntity<PlayerProjectile>(GetLocation() + WE::WVec2(0, 2), WE::WVec2(2));
+	GetGameContext()->GAME_InstantiateEntity<PlayerProjectile>(GetLocation() + WE::WVec2(0, 1), WE::WVec2(2));
 
 
 

@@ -65,6 +65,14 @@ namespace WE
 		dynamicBody = 2,
 	};
 
+	enum WE_API WCollisionLayer : uint32_t
+	{
+		Layer1 = 0x00000001,
+		Layer2 = 0x00000002,
+		Layer3 = 0x00000004,
+		Layer4 = 0x00000008
+	};
+
 	enum WE_API WRenderEngine : bool
 	{
 		SDL = false,
@@ -123,11 +131,18 @@ namespace WE
 			return newEntity;
 		}
 
-
+	private:
 		void On_InstantiateEntity(Entity*, WVec2 pos, WVec2 size);
+		void SYSTEM_DestroyAllEntities();
+
+	public:
 		void GAME_DestroyEntity(Entity*);
 
-		void PHYS_AddPhysComponentToEntity(Entity*, WBodyType bodyType, WVec2 sizeOverride);
+
+		void PHYS_SetWorldGravity(WVec2);
+
+		void PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType, WVec2 sizeOverride, uint32_t collisionLayer, uint32_t collidesWith);
+		void PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType); 
 		void PHYS_SetLocationOnPhysObj(WPhysBodyId id, WVec2 pos);
 		void PHYS_SetLinearVelocityOnPhysObj(WPhysBodyId id, WVec2 vel);
 
@@ -147,7 +162,8 @@ namespace WE
 		void RENDER_SetManualAnimationState(Entity* entity, float state_0to1);
 
 	public:
-		void PHYS_SetWorldGravity(WVec2);
+		void MEMORY_SetAutoUnloadAssetIfUnused(bool enabled);
+		
 	
 	};
 }
