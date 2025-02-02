@@ -11,7 +11,7 @@ public:
 	void Start() override;
 	void Update(float deltaTime) override;
 	
-	void On_CollisionBegin(Entity* other, WE::WVec2 point) override;
+	void On_SensorBeginOverlap(Entity* other) override;
 
 private:
 	float lifeTime = 2.f;

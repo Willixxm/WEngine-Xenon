@@ -934,6 +934,25 @@ namespace WE
 					entityB->On_CollisionBegin(entityA, point);
 				}
 			}
+
+
+			b2SensorEvents sensorEvents = b2World_GetSensorEvents(worldId);
+			for (int i = 0; i < sensorEvents.beginCount; ++i)
+			{
+				b2SensorBeginTouchEvent* beginTouch = sensorEvents.beginEvents + i;
+
+				//Entity* sensorEntity = static_cast<Entity*>(b2Shape_GetUserData(beginTouch->sensorShapeId));
+				//Entity* otherEntity = static_cast<Entity*>(b2Shape_GetUserData(beginTouch->visitorShapeId));
+
+
+				b2BodyId sensorBody = b2Shape_GetBody(beginTouch->sensorShapeId);
+				b2BodyId otherBody = b2Shape_GetBody(beginTouch->visitorShapeId);
+
+				Entity* sensorEntity = static_cast<Entity*>(b2Body_GetUserData(sensorBody));
+				Entity* otherEntity = static_cast<Entity*>(b2Body_GetUserData(otherBody));
+				
+				sensorEntity->On_SensorBeginOverlap(otherEntity);
+			}
 		}
 
 		b2BodyId GetB2IdFromWId(WPhysBodyId WId)
@@ -985,7 +1004,7 @@ namespace WE
 			b2World_SetGravity(worldId, gravity);
 		}
 
-		WPhysBodyId CreateObj(Entity* entity, WBodyType bodyType, WVec2 boxSize, uint32_t collisionLayer, uint32_t collidesWith)
+		WPhysBodyId CreateObj(Entity* entity, WBodyType bodyType, WVec2 boxSize, uint32_t collisionLayer, uint32_t collidesWith, bool isSensor)
 		{
 			b2BodyDef bodyDef = b2DefaultBodyDef();
 			bodyDef.type = (b2BodyType)bodyType;
@@ -1000,6 +1019,8 @@ namespace WE
 				b2Polygon bodyBox = b2MakeBox(boxSize.x / 2, boxSize.y / 2);
 				b2ShapeDef boxShapeDef = b2DefaultShapeDef();
 				boxShapeDef.density = 1.f;
+				if (isSensor)
+					boxShapeDef.isSensor = isSensor;
 				boxShapeDef.enableContactEvents = true;
 				
 				boxShapeDef.filter.categoryBits = collisionLayer;
@@ -1093,12 +1114,12 @@ namespace WE
 
 	void GameContext::PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType)
 	{ 
-		PHYS_AddPhysComponentToEntity(entity, bodyType, entity->GetInitialSize(), 0, 0); 
+		PHYS_AddPhysComponentToEntity(entity, bodyType, entity->GetInitialSize(), 0, 0, false); 
 	}
-	void GameContext::PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType, WVec2 sizeOverride, uint32_t collisionLayer, uint32_t collidesWith)
+	void GameContext::PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType, WVec2 sizeOverride, uint32_t collisionLayer, uint32_t collidesWith, bool isSensor)
 	{
 		if (!entity->bodyId.isValid)
-			entity->bodyId = physicsPImpl->CreateObj(entity, bodyType, sizeOverride, collisionLayer, collidesWith);
+			entity->bodyId = physicsPImpl->CreateObj(entity, bodyType, sizeOverride, collisionLayer, collidesWith, isSensor);
 	}
 
 	WVec2 GameContext::SYSTEM_GetLocationOfPhysObj(WPhysBodyId id)

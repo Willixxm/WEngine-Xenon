@@ -64,6 +64,7 @@ namespace WE
 	public:
 
 		virtual void On_CollisionBegin(Entity* other, WVec2 point);
+		virtual void On_SensorBeginOverlap(Entity* other);
 
 		friend class GameContext; //to access and set gameContext variable on instantiation
 	};

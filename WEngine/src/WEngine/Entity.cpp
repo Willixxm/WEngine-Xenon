@@ -49,6 +49,8 @@ namespace WE
 	}
 
 	void Entity::On_CollisionBegin(Entity* other, WVec2 point) {}
+
+	void Entity::On_SensorBeginOverlap(Entity* other) {}
 	
 }
 

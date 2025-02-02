@@ -141,7 +141,7 @@ namespace WE
 
 		void PHYS_SetWorldGravity(WVec2);
 
-		void PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType, WVec2 sizeOverride, uint32_t collisionLayer, uint32_t collidesWith);
+		void PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType, WVec2 sizeOverride, uint32_t collisionLayer, uint32_t collidesWith, bool isSensor);
 		void PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType); 
 		void PHYS_SetLocationOnPhysObj(WPhysBodyId id, WVec2 pos);
 		void PHYS_SetLinearVelocityOnPhysObj(WPhysBodyId id, WVec2 vel);
