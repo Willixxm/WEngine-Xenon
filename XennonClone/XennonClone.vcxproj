@@ -93,6 +93,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Game\EnemyLoner.cpp" />
     <ClCompile Include="src\Game\Explosion.cpp" />
     <ClCompile Include="src\Game\Enemy.cpp" />
     <ClCompile Include="src\Game\PlayerProjectile.cpp" />
@@ -101,6 +102,7 @@
     <ClCompile Include="src\Xennon.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Game\EnemyLoner.h" />
     <ClInclude Include="src\Game\Explosion.h" />
     <ClInclude Include="src\Game\Enemy.h" />
     <ClInclude Include="src\Game\PlayerProjectile.h" />

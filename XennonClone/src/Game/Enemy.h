@@ -15,12 +15,20 @@ public:
 
 	void DealDamage(float damage) override;
 
+	virtual void On_Die();
+
 protected:
-	std::string filePath = "graphics/explode64.bmp";
+	std::string filePath = "graphics/font16x16.bmp";
 	float hitboxSizeMult = 1.0f;
-	int hTiles = 5;
-	int vTiles = 2;
+	int hTiles = 8;
+	int vTiles = 12;
+	int tileOffset = 46;
+	int tileSpan = 2;
+	int renderLayer = 0;
+	float animationFPS = 2.5f;
+
 	float lifePoints = 100.f;
+
 
 };
 

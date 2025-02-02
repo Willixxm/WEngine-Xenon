@@ -6,6 +6,7 @@
 #include "SpaceShip.h"
 #include "BackGround.h"
 #include "Enemy.h"
+#include "EnemyLoner.h"
 
 class XennonLevel : public WE::Entity
 {
@@ -25,7 +26,7 @@ public:
 		Enemy* enemy = GetGameContext()->GAME_InstantiateEntity<Enemy>(WE::WVec2(0, 10), WE::WVec2(6));
 		Enemy* enemy1 = GetGameContext()->GAME_InstantiateEntity<Enemy>(WE::WVec2(4, 5), WE::WVec2(6));
 		Enemy* enemy2 = GetGameContext()->GAME_InstantiateEntity<Enemy>(WE::WVec2(-5, 15), WE::WVec2(6));
-		Enemy* enemy3 = GetGameContext()->GAME_InstantiateEntity<Enemy>(WE::WVec2(1, 13), WE::WVec2(6));
+		Enemy* enemy3 = GetGameContext()->GAME_InstantiateEntity<EnemyLoner>(WE::WVec2(1, 13), WE::WVec2(4));
 	}
 
 	void Update(float deltaTime) override

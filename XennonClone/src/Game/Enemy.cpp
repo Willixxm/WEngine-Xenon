@@ -13,9 +13,9 @@ void Enemy::Start()
 	Pawn::Start();
 
 	GetGameContext()->PHYS_AddPhysComponentToEntity(this, WE::WBodyType::dynamicBody, GetInitialSize() * hitboxSizeMult, WCollisionLayer::Layer3, WCollisionLayer::Layer1 | WCollisionLayer::Layer2, false);
-	GetGameContext()->PHYS_SetLinearVelocityOnPhysObj(this->bodyId, WE::WVec2(0, -2));
-	GetGameContext()->RENDER_AddRenderComponent(this, "graphics/LonerA.bmp", 4, 4, 0, 16, 0);
-	GetGameContext()->RENDER_SetAnimationParameters(this, true, 5.f);
+	//GetGameContext()->PHYS_SetLinearVelocityOnPhysObj(this->bodyId, WE::WVec2(0, -2));
+	GetGameContext()->RENDER_AddRenderComponent(this, filePath, hTiles, vTiles, tileOffset, tileSpan, renderLayer);
+	GetGameContext()->RENDER_SetAnimationParameters(this, true, animationFPS);
 
 }
 
@@ -23,10 +23,6 @@ void Enemy::Start()
 void Enemy::Update(float deltaTime)
 {
 	Pawn::Update(deltaTime);
-
-
-
-
 
 
 }
@@ -40,11 +36,16 @@ void Enemy::DealDamage(float damage)
 
 	if (lifePoints <= 0)
 	{
-		GetGameContext()->GAME_InstantiateEntity<Explosion>(GetLocation(), WE::WVec2(5));
-
-		Destroy();
+		On_Die();
 	}
 
+}
 
-	
+void Enemy::On_Die()
+{
+	GetGameContext()->GAME_InstantiateEntity<Explosion>(GetLocation(), GetInitialSize());
+
+	//TODO give points
+
+	Destroy();
 }
