@@ -2,6 +2,7 @@
 #include "Game.h"
 #include "WMath.h"
 #include "Entity.h"
+#include "CoroutineInstance.h"
 
 #include <memory>
 #include <string>
@@ -355,6 +356,7 @@ namespace WE
 
 		void RenderFrameSDL(float deltaTime)
 		{
+
 			SDL_RenderClear(renderTarget);
 
 
@@ -941,10 +943,6 @@ namespace WE
 			{
 				b2SensorBeginTouchEvent* beginTouch = sensorEvents.beginEvents + i;
 
-				//Entity* sensorEntity = static_cast<Entity*>(b2Shape_GetUserData(beginTouch->sensorShapeId));
-				//Entity* otherEntity = static_cast<Entity*>(b2Shape_GetUserData(beginTouch->visitorShapeId));
-
-
 				b2BodyId sensorBody = b2Shape_GetBody(beginTouch->sensorShapeId);
 				b2BodyId otherBody = b2Shape_GetBody(beginTouch->visitorShapeId);
 
@@ -952,6 +950,7 @@ namespace WE
 				Entity* otherEntity = static_cast<Entity*>(b2Body_GetUserData(otherBody));
 				
 				sensorEntity->On_SensorBeginOverlap(otherEntity);
+				otherEntity->On_EnterOtherSensor(sensorEntity);
 			}
 		}
 
@@ -1004,7 +1003,7 @@ namespace WE
 			b2World_SetGravity(worldId, gravity);
 		}
 
-		WPhysBodyId CreateObj(Entity* entity, WBodyType bodyType, WVec2 boxSize, uint32_t collisionLayer, uint32_t collidesWith, bool isSensor)
+		WPhysBodyId CreateObj(Entity* entity, WBodyType bodyType, WVec2 boxSize, uint32_t collisionLayer, uint32_t collidesWith, bool isSensor, float density)
 		{
 			b2BodyDef bodyDef = b2DefaultBodyDef();
 			bodyDef.type = (b2BodyType)bodyType;
@@ -1018,7 +1017,7 @@ namespace WE
 			{
 				b2Polygon bodyBox = b2MakeBox(boxSize.x / 2, boxSize.y / 2);
 				b2ShapeDef boxShapeDef = b2DefaultShapeDef();
-				boxShapeDef.density = 1.f;
+				boxShapeDef.density = density;
 				if (isSensor)
 					boxShapeDef.isSensor = isSensor;
 				boxShapeDef.enableContactEvents = true;
@@ -1114,18 +1113,26 @@ namespace WE
 
 	void GameContext::PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType)
 	{ 
-		PHYS_AddPhysComponentToEntity(entity, bodyType, entity->GetInitialSize(), 0, 0, false); 
+		PHYS_AddPhysComponentToEntity(entity, bodyType, entity->GetInitialSize(), 0, 0, false, 1.0f); 
 	}
-	void GameContext::PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType, WVec2 sizeOverride, uint32_t collisionLayer, uint32_t collidesWith, bool isSensor)
+	void GameContext::PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType, WVec2 sizeOverride, uint32_t collisionLayer, uint32_t collidesWith, bool isSensor, float density)
 	{
 		if (!entity->bodyId.isValid)
-			entity->bodyId = physicsPImpl->CreateObj(entity, bodyType, sizeOverride, collisionLayer, collidesWith, isSensor);
+		{
+			entity->bodyId = physicsPImpl->CreateObj(entity, bodyType, sizeOverride, collisionLayer, collidesWith, isSensor, density);
+		}
+			
 	}
 
 	WVec2 GameContext::SYSTEM_GetLocationOfPhysObj(WPhysBodyId id)
 	{
-		assert(id.isValid, "Tried accessing invalid physics obj!");
-		return physicsPImpl->GetObjPos(id);
+		if (!id.isValid)
+		{
+			std::cout << "ERROR: Tried accessing invalid physics obj!\n";
+			return WVec2(0);
+		}
+		else
+			return physicsPImpl->GetObjPos(id);
 	}
 	void GameContext::PHYS_SetLinearVelocityOnPhysObj(WPhysBodyId id, WVec2 vel)
 	{
@@ -1184,6 +1191,14 @@ namespace WE
 		windowPImpl->SetOrthoCameraPosition(newPos);
 	}
 
+	void GameContext::GAME_StartCoroutine(Entity* caller, int ID, float duration)
+	{
+		CoroutineInstance* corInstance = new CoroutineInstance(caller, ID, duration);
+		On_InstantiateEntity(corInstance, WVec2(0), WVec2(0));
+
+		//instancedEntities.push_back(corInstance);
+		//corInstance->Start();
+	}
 	void GameContext::On_InstantiateEntity(Entity* entity, WVec2 pos, WVec2 size)
 	{
 		entity->gameContext = this;

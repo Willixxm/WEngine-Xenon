@@ -12,14 +12,14 @@ namespace WE
 	{
 	public:
 
-		WPhysBodyId(unsigned int bodyId, unsigned int worldId, unsigned int gen) : physBodyId{ bodyId }, physWorldId{ worldId }, physGeneration{ gen } {}
+		WPhysBodyId(unsigned int bodyId, unsigned int worldId, unsigned int gen) : physBodyId{ bodyId }, physWorldId{ worldId }, physGeneration{ gen }, isValid{ true } {}
 		WPhysBodyId() : WPhysBodyId(0, 0, 0) { isValid = false; }
 
 		unsigned int physBodyId = 0;
 		unsigned int physWorldId = 0;
 		unsigned int physGeneration = 0;
 
-		bool isValid = true;
+		bool isValid = false;
 	};
 
 	class WE_API Entity
@@ -58,6 +58,9 @@ namespace WE
 		virtual void Start();
 		virtual void Update(float deltaTime);
 
+		virtual void OnCoroutineUpdate(int CoroutineID, float CoroutineTime) {}
+		virtual void OnCoroutineEnd(int CoroutineID) {}
+
 
 		void Destroy();
 
@@ -65,6 +68,7 @@ namespace WE
 
 		virtual void On_CollisionBegin(Entity* other, WVec2 point);
 		virtual void On_SensorBeginOverlap(Entity* other);
+		virtual void On_EnterOtherSensor(Entity* otherSensor);//UNUSED
 
 		friend class GameContext; //to access and set gameContext variable on instantiation
 	};

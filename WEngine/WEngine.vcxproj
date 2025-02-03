@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\WEngine\CoroutineInstance.h" />
     <ClInclude Include="src\WEngine\Pawn.h" />
     <ClInclude Include="src\WEngine\InputVectorComponent.h" />
     <ClInclude Include="src\WEngine\GameContext.h" />
@@ -22,6 +23,7 @@
     <ClInclude Include="src\WEngine\WMath.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\WEngine\CoroutineInstance.cpp" />
     <ClCompile Include="src\WEngine\Pawn.cpp" />
     <ClCompile Include="src\WEngine\Game.cpp" />
     <ClCompile Include="src\WEngine\GameContext.cpp" />

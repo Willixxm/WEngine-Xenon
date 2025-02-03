@@ -17,7 +17,7 @@ namespace WE
 		void Move(WVec2 vector);
 
 	public:
-		virtual void DealDamage(float damage);
+		virtual void DealDamage(Entity* dealer, float damage);
 
 	};
 }

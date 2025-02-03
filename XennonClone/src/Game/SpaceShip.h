@@ -4,6 +4,12 @@
 #include "WEngine/InputVectorComponent.h"
 
 
+enum CoroutineID : int
+{
+	invincibleAfterDmg = 0
+};
+
+
 class SpaceShip : public WE::Pawn
 {
 public:
@@ -11,17 +17,26 @@ public:
 	void Start() override;
 	void Update(float deltaTime) override;
 
+	void DealDamage(Entity* dealer, float damage) override;
+
+	void OnCoroutineUpdate(int ID, float duration) override;
+	void OnCoroutineEnd(int ID) override;
+
 private:
 	float timeUntilNextShot = 0.f;
 	const float fireCoolDown = 0.2f;
 	float moveSpeed = 10.f;
+
+	bool isInvincible = false;
+	float invincibilityDuration = 0.76f;
 
 private:
 	void HandleShoot(float deltaTime);
 	WE::InputVectorComponent inputVectorComponent;
 	void HandleMovement(float deltaTime);
 
-
 	void PrimaryFire();
+
+
 };
 

@@ -13,9 +13,11 @@ public:
 	void Start() override;
 	void Update(float deltaTime) override;
 
-	void DealDamage(float damage) override;
+	void DealDamage(Entity* dealer, float damage) override;
 
-	virtual void On_Die();
+	void On_SensorBeginOverlap(Entity* other) override;
+
+	void Die();
 
 protected:
 	std::string filePath = "graphics/font16x16.bmp";
@@ -28,7 +30,9 @@ protected:
 	float animationFPS = 2.5f;
 
 	float lifePoints = 100.f;
+	float bodyDamage = 50.f;
 
+	bool isSensor = true;
 
 };
 

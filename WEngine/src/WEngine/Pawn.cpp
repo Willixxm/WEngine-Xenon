@@ -23,7 +23,7 @@ namespace WE
 		GetGameContext()->PHYS_SetLinearVelocityOnPhysObj(this->bodyId, moveVector);
 	}
 
-	void Pawn::DealDamage(float damage)
+	void Pawn::DealDamage(Entity* dealer, float damage)
 	{
 
 	}

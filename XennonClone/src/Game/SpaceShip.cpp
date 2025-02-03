@@ -13,7 +13,7 @@ void SpaceShip::Start()
 {
 	Pawn::Start();
 
-	GetGameContext()->PHYS_AddPhysComponentToEntity(this, WE::WBodyType::dynamicBody, GetInitialSize()*0.75f, WCollisionLayer::Layer1, WCollisionLayer::Layer3, true);
+	GetGameContext()->PHYS_AddPhysComponentToEntity(this, WE::WBodyType::dynamicBody, GetInitialSize()*0.75f, WCollisionLayer::Layer1, WCollisionLayer::Layer2, false, 1.f);
 	GetGameContext()->RENDER_AddRenderComponent(this, "graphics/Ship2.bmp", 7, 3, 0, 7, 0);
 	GetGameContext()->RENDER_SetAnimationParameters(this, false, 2.f);
 
@@ -77,5 +77,46 @@ void SpaceShip::PrimaryFire()
 	GetGameContext()->GAME_InstantiateEntity<PlayerProjectile>(GetLocation() + WE::WVec2(0, 1), WE::WVec2(2));
 
 
+
+}
+
+void SpaceShip::DealDamage(Entity* dealer, float damage)
+{
+	if (!isInvincible)
+	{
+		GetGameContext()->GAME_StartCoroutine(this, CoroutineID::invincibleAfterDmg, invincibilityDuration);
+		GetGameContext()->RENDER_SetAnimationTileParameters(this, 7, 7);
+		isInvincible = true;
+	}
+	
+
+}
+
+
+void SpaceShip::OnCoroutineUpdate(int ID, float duration)
+{
+	switch (ID)
+	{
+	case CoroutineID::invincibleAfterDmg:
+		if ((int)(duration*8) % 2 == 0)
+			GetGameContext()->RENDER_SetAnimationTileParameters(this, 0, 7);
+		else
+			GetGameContext()->RENDER_SetAnimationTileParameters(this, 7, 7);
+		break;
+
+	}
+
+}
+
+void SpaceShip::OnCoroutineEnd(int ID)
+{
+	switch (ID)
+	{
+	case CoroutineID::invincibleAfterDmg:
+		GetGameContext()->RENDER_SetAnimationTileParameters(this, 0, 7);
+		isInvincible = false;
+		break;
+
+	}
 
 }
