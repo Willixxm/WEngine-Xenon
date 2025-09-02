@@ -10,7 +10,7 @@ void PlayerProjectile::Start()
 {
 	WE::Entity::Start();
 
-	GetGameContext()->PHYS_AddPhysComponentToEntity(this, WE::WBodyType::kinematicBody, GetInitialSize(), WCollisionLayer::Layer1, WCollisionLayer::Layer2, false, 0.05f);
+	GetGameContext()->PHYS_AddPhysComponentToEntity(this, WE::WBodyType::kinematicBody, GetInitialSize(), WCollisionLayer::Layer2, WCollisionLayer::Layer3, false, 0.05f);
 	GetGameContext()->PHYS_SetLinearVelocityOnPhysObj(this->bodyId, WE::WVec2(0, projectileSpeed));
 	GetGameContext()->RENDER_AddRenderComponent(this, "graphics/missile.bmp", 2, 3, 0, 2, -1);
 	GetGameContext()->RENDER_SetAnimationParameters(this, true, 5.f);

@@ -9,8 +9,9 @@ public:
 	Xennon()
 	{
 		windowWidth = 500;
-		windowHeight = windowWidth * 16/9;
+		windowHeight = windowWidth * 4/3;
 		gameName = "Xennon Clone";
+		renderEngine = WRenderEngine::SDL;
 	}
 
 	~Xennon()

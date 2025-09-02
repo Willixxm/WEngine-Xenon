@@ -14,8 +14,7 @@ void Enemy::Start()
 {
 	Pawn::Start();
 
-	GetGameContext()->PHYS_AddPhysComponentToEntity(this, WE::WBodyType::dynamicBody, GetInitialSize() * hitboxSizeMult, WCollisionLayer::Layer2, WCollisionLayer::Layer1, isSensor, 1.f);
-	//GetGameContext()->PHYS_SetLinearVelocityOnPhysObj(this->bodyId, WE::WVec2(0, -2));
+	GetGameContext()->PHYS_AddPhysComponentToEntity(this, WE::WBodyType::kinematicBody, GetInitialSize() * hitboxSizeMult, collisionLayer, collidesWith, isSensor, 1.f);
 	GetGameContext()->RENDER_AddRenderComponent(this, filePath, hTiles, vTiles, tileOffset, tileSpan, renderLayer);
 	GetGameContext()->RENDER_SetAnimationParameters(this, true, animationFPS);
 
@@ -25,7 +24,6 @@ void Enemy::Start()
 void Enemy::Update(float deltaTime)
 {
 	Pawn::Update(deltaTime);
-
 
 }
 
@@ -38,12 +36,11 @@ void Enemy::DealDamage(Entity* dealer, float damage)
 
 	if (lifePoints <= 0)
 	{
-		Die();
+		DieByPlayer();
 	}
-
 }
 
-void Enemy::Die()
+void Enemy::DieByPlayer()
 {
 	GetGameContext()->GAME_InstantiateEntity<Explosion>(GetLocation(), GetInitialSize());
 
@@ -57,14 +54,38 @@ void Enemy::On_SensorBeginOverlap(Entity* other)
 	Entity::On_SensorBeginOverlap(other);
 
 
-	SpaceShip* hitEnemy = dynamic_cast<SpaceShip*>(other);
-	if (hitEnemy)
+	SpaceShip* hitPlayer = dynamic_cast<SpaceShip*>(other);
+	if (hitPlayer)
 	{
-		hitEnemy->DealDamage(this, bodyDamage);
+		hitPlayer->DealDamage(this, bodyDamage);
 
 		if (isSensor)
-			Die();
+			DieByPlayer();
 
 	}
 
+}
+
+void Enemy::HandleShoot(float deltaTime)
+{
+	timeUntilNextShot -= deltaTime;
+	if (timeUntilNextShot <= 0 && canShoot)
+	{
+		timeUntilNextShot = shotCooldownTime;
+
+		Fire();
+	}
+}
+
+void Enemy::Fire()
+{
+
+}
+
+void Enemy::HandleEnemyLifeTime()
+{
+	if (GetTimeAlive() > maxLifeTime)
+	{
+		Destroy();
+	}
 }

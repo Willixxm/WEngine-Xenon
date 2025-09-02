@@ -16,6 +16,8 @@
 #include <glad/glad.h>
 #include "stb_image.h"
 
+#include "Shader.h"
+
 
 
 namespace WE
@@ -81,6 +83,8 @@ namespace WE
 			surfaceRect.y = y * tileHeight;
 			surfaceRect.w = tileWidth;
 			surfaceRect.h = tileHeight;
+			
+			tileAspectRatio = tileWidth / tileHeight;
 
 		}
 
@@ -112,6 +116,8 @@ namespace WE
 		int nTiles = 1;
 		int tileOffset = 0;
 		int tileSpan = nTiles;
+
+		float tileAspectRatio = 1.f;
 
 		float animationProgress = 0.f;
 		int currentTile = 0;
@@ -152,8 +158,10 @@ namespace WE
 	class GameContext::SDLWindow
 	{
 	public:
-		SDLWindow(std::string wName, unsigned int wWidth, unsigned int wHeight) : windowName { wName }, windowWidth{ wWidth }, windowHeight{ wHeight }
+		SDLWindow(std::string wName, unsigned int wWidth, unsigned int wHeight, WRenderEngine renderEngine) :
+			windowName{ wName }, windowWidth{ wWidth }, windowHeight{ wHeight }, renderEngine{ renderEngine }
 		{
+
 			// INIT SDL
 			SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
 			
@@ -165,22 +173,52 @@ namespace WE
 			window = SDL_CreateWindow(windowName.c_str(), windowWidth, windowHeight, SDL_WINDOW_OPENGL);
 			assert(window, "failed to create window");
 
-			renderTarget = SDL_CreateRenderer(window, NULL);
+			if (renderEngine == WRenderEngine::SDL)
+			{
+				renderTarget = SDL_CreateRenderer(window, NULL);
+				if (renderTarget == nullptr)
+					std::cout << "failed to create renderTarget" << std::endl;
+
+				SDL_SetRenderDrawColor(renderTarget, 0, 0, 0, 0xFF);
+			}
+			else
+			{
+				
+				glGenVertexArrays(1, &baseVao);
+				glBindVertexArray(baseVao);
+
+				shader.CreateShaderProgram("../shaders/shader_vertex.glsl", "../shaders/shader_fragment.glsl");
+				shader.Use();
+
+				glGenBuffers(1, &baseVbo);
+				glBindBuffer(GL_ARRAY_BUFFER, baseVbo);
+				glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), squareVertices, GL_STATIC_DRAW);
+
+				glGenBuffers(1, &baseEbo);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, baseEbo);
+				glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(float), squareElements, GL_STATIC_DRAW);
+
+				shader.setVertexAttribPointer("position", 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 
 
-			if (renderTarget == nullptr)
-				std::cout << "failed to create renderTarget" << std::endl;
+
+			}
 
 
-			SDL_SetRenderDrawColor(renderTarget, 0, 0, 0, 0xFF);
 
 		}
 
 		~SDLWindow()
 		{
 
-			UnloadAllTexturesGL();
-			UnloadAllTexturesSDL();
+			UnloadAllTextures();
+
+			if (renderEngine == WRenderEngine::OpenGL)
+			{
+				glDeleteBuffers(1, &baseEbo);
+				glDeleteBuffers(1, &baseVbo);
+				glDeleteBuffers(1, &baseVao);
+			}
 
 			SDL_DestroyWindow(window);
 			window = nullptr;
@@ -310,50 +348,39 @@ namespace WE
 			cameraPosition = newPos;
 		}
 
-		void RenderFrameGL(float deltaTime)
+	public:
+		void RenderFrame(float deltaTime)
 		{
-
-			/*
-			glClearColor(0.f, 0.f, 0.f, 0.f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-			for (size_t i = 0; i < renderGLEntities.size(); ++i)
-			{
-				if (renderGLEntities[i].entity == nullptr)
-				{
-					RemoveFromGLRender(nullptr); //removes all invalid entities from renderObjects3D
-
-					if (i >= renderGLEntities.size())
-						break; //exit loop if current count exceeds new vector size (after invalid entities removal)
-				}
-
-				/*
-				glm::mat4 model = renderEntities2D[i].entity->GetGlobalTransform();
-
-				renderObjects3D[i].shader->use();
-
-				renderObjects3D[i].shader->setMat4("model", model);
-				renderObjects3D[i].shader->setMat4("view", view);
-				renderObjects3D[i].shader->setMat4("projection", projection);
-				renderObjects3D[i].shader->set3Float("lightPosition", lightPosition.x, lightPosition.y, lightPosition.z);
-				*/
-
-				//glBindVertexArray(renderGLEntities[i].vao);
-				//glBindTexture(GL_TEXTURE_2D, renderObjects3D[i].tex);
-
-				//draw elements here (create vbo for square on contructor)
-				/*
-				glBindVertexArray(0);
-				glBindTexture(GL_TEXTURE_2D, 0);
-			}
-
-			SDL_GL_SwapWindow(window);*/
-
-
-			
-			
+			if (renderEngine == WRenderEngine::SDL)
+				RenderFrameSDL(deltaTime);
+			else
+				RenderFrameGL(deltaTime);
+		}
+	
+		void AddToRender(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, float width, float height, int renderLayer)
+		{
+			if (renderEngine == WRenderEngine::SDL)
+				AddToSDLRender(entity, filePath, hTiles, vTiles, tileOffset, tileSpan, width, height, renderLayer);
+			else
+				AddToGLRender(entity, filePath);
+		}
+		void RemoveFromRender(Entity* entity)
+		{
+			if (renderEngine == WRenderEngine::SDL)
+				RemoveFromSDLRender(entity);
+			else
+				RemoveFromGLRender(entity);
 		}
 
+		void UnloadAllTextures()
+		{
+			if (renderEngine == WRenderEngine::SDL)
+				UnloadAllTexturesSDL();
+			else
+				UnloadAllTexturesGL();
+		}
+
+	private:
 		void RenderFrameSDL(float deltaTime)
 		{
 
@@ -386,7 +413,7 @@ namespace WE
 				if (renderSDLEntities[i].entityHeight || renderSDLEntities[i].entityWidth)
 				{
 					EntityPosition.w = (renderSDLEntities[i].entityWidth) * windowHeight / orthoCameraSize;
-					EntityPosition.h = (renderSDLEntities[i].entityHeight) * windowHeight / orthoCameraSize;
+					EntityPosition.h = (renderSDLEntities[i].entityHeight / renderSDLEntities[i].params.tileAspectRatio) * windowHeight / orthoCameraSize;
 					EntityPosition.x = (windowWidth / 2) + ((location.x - cameraPosition.x) * windowHeight / orthoCameraSize) - EntityPosition.w / 2;
 					EntityPosition.y = (windowHeight / 2) - ((location.y - cameraPosition.y) * windowHeight / orthoCameraSize) - EntityPosition.h / 2;
 
@@ -402,8 +429,6 @@ namespace WE
 			SDL_RenderPresent(renderTarget);
 		}
 
-
-	public:
 		void AddToSDLRender(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, float width, float height, int renderLayer)
 		{
 			if (filePath == "")
@@ -471,10 +496,8 @@ namespace WE
 			SDL_OrderEntitiesByLayer();
 		}
 
-	private:
 		void AddTextureUserSDL(const std::string& filepath, Entity* entity)
 		{
-
 			for (size_t i = 0; i < LoadedSurfaces.size(); ++i)
 				if (filepath == LoadedSurfaces[i].filepath) //if surface is loaded
 				{
@@ -484,7 +507,6 @@ namespace WE
 
 					LoadedSurfaces[i].users.push_back(entity);
 				}
-
 		}
 		void RemoveTextureUserSDL(const std::string& filepath, Entity* entity)
 		{
@@ -609,9 +631,48 @@ namespace WE
 				});
 		}
 
-
 		
-	public:
+	private:
+		void RenderFrameGL(float deltaTime)
+		{
+
+			glClearColor(0.f, 0.f, 0.f, 0.f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			for (size_t i = 0; i < renderGLEntities.size(); ++i)
+			{
+				if (renderGLEntities[i].entity == nullptr)
+				{
+					RemoveFromGLRender(nullptr); //removes all invalid entities from renderObjects3D
+
+					if (i >= renderGLEntities.size())
+						break; //exit loop if current count exceeds new vector size (after invalid entities removal)
+				}
+
+				
+				//glm::mat4 model = renderGLEntities[i]
+
+				
+
+				//renderGLEntities[i].shader->setMat4("model", model);
+				
+
+				//glBindVertexArray(renderGLEntities[i].vao);
+				//glBindTexture(GL_TEXTURE_2D, renderObjects3D[i].tex);
+
+				//draw elements here (create vbo for square on contructor)
+				
+				glBindVertexArray(0);
+				glBindTexture(GL_TEXTURE_2D, 0);
+			}
+
+			SDL_GL_SwapWindow(window);
+
+
+
+
+		}
+
 		void AddToGLRender(Entity* entity, std::string textureFilePath)
 		{
 			if (textureFilePath == "")
@@ -640,7 +701,7 @@ namespace WE
 				textureFilePath = BMP_PLACEHOLDER;
 			}
 
-			AddTextureUserSDL(textureFilePath, entity);
+			AddTextureUserGL(textureFilePath, entity);
 
 
 			RenderGLEntity2D newObj;
@@ -681,7 +742,6 @@ namespace WE
 			}
 		}
 
-	private:
 		void AddTextureUserGL(const std::string& filepath, Entity* entity)
 		{
 			for (size_t i = 0; i < LoadedTextures.size(); ++i)
@@ -804,6 +864,7 @@ namespace WE
 
 
 
+
 	public:
 		void SetAnimationParameters(Entity* entity, bool autoAnimate, float animationFps)
 		{
@@ -866,6 +927,20 @@ namespace WE
 		std::string windowName;
 		unsigned int windowWidth;
 		unsigned int windowHeight;
+
+		WRenderEngine renderEngine;
+
+		Shader shader;
+		GLuint baseVao;
+
+		GLuint baseVbo;
+		float squareVertices[8]{
+			-0.5f, 0.5f,		0.5f, 0.5f,
+			-0.5f, -0.5f,		0.5, -0.5f };
+
+		GLuint baseEbo;
+		float squareElements[6]{
+			0, 1, 2,	2, 1, 3 };
 
 		float orthoCameraSize = 10;
 		WVec2 cameraPosition = WVec2(0);
@@ -1046,7 +1121,9 @@ namespace WE
 	};
 
 
-	GameContext::GameContext(Game* game) : game{ game }, windowPImpl { std::make_unique<SDLWindow>(game->gameName, game->windowWidth, game->windowHeight) }, physicsPImpl{ std::make_unique<Box2D>() }
+	GameContext::GameContext(Game* game) : game{ game }, 
+		windowPImpl { std::make_unique<SDLWindow>(game->gameName, game->windowWidth, game->windowHeight, game->renderEngine) }, 
+		physicsPImpl{ std::make_unique<Box2D>() }
 	{
 		
 	}
@@ -1088,10 +1165,7 @@ namespace WE
 	}
 	void GameContext::SYSTEM_Render(float deltaTime)
 	{
-		if (renderEngine == WRenderEngine::SDL)
-			windowPImpl->RenderFrameSDL(deltaTime);
-		else
-			windowPImpl->RenderFrameGL(deltaTime);
+		windowPImpl->RenderFrame(deltaTime);
 	}
 
 	bool GameContext::INPUT_GetKeyDown(INPUT_KeyCode keyCode)
@@ -1155,19 +1229,11 @@ namespace WE
 	}
 	void GameContext::RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer, WVec2 sizeOverride)
 	{
-		windowPImpl->AddToSDLRender(entity, filePath, hTiles, vTiles, tileOffset, tileSpan, sizeOverride.x, sizeOverride.y, layer);
-
-		/*
-		if (renderType == WRenderType::Render_Surface)	
-		else
-			windowPImpl->AddToGLRender(entity, filePath);*/
+		windowPImpl->AddToRender(entity, filePath, hTiles, vTiles, tileOffset, tileSpan, sizeOverride.x, sizeOverride.y, layer);
 	}
 	void GameContext::RENDER_RemoveRenderComponent(Entity* entity)
 	{
-		if (renderEngine == WRenderEngine::SDL)
-			windowPImpl->RemoveFromSDLRender(entity);
-		else
-			windowPImpl->RemoveFromGLRender(entity);
+		windowPImpl->RemoveFromRender(entity);
 	}
 	void GameContext::RENDER_SetAnimationParameters(Entity* entity, bool autoAnimate, float animationFps)
 	{
@@ -1220,8 +1286,7 @@ namespace WE
 			if(instancedEntities[i]->bodyId.isValid)
 				physicsPImpl->DestroyObj(instancedEntities[i]->bodyId);
 			
-			windowPImpl->RemoveFromSDLRender(instancedEntities[i]);
-			//windowPImpl->RemoveFromGLRender(instancedEntities[i]);
+			windowPImpl->RemoveFromRender(instancedEntities[i]);
 
 			delete instancedEntities[i];
 			instancedEntities[i] = nullptr;
@@ -1236,8 +1301,7 @@ namespace WE
 			if (instancedEntities[i]->bodyId.isValid)
 				physicsPImpl->DestroyObj(instancedEntities[i]->bodyId);
 
-			windowPImpl->RemoveFromSDLRender(instancedEntities[i]);
-			//windowPImpl->RemoveFromGLRender(instancedEntities[i]);
+			windowPImpl->RemoveFromRender(instancedEntities[i]);
 
 			delete instancedEntities[i];
 			instancedEntities[i] = nullptr;

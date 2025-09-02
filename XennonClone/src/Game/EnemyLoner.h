@@ -9,13 +9,12 @@ public:
 
 	EnemyLoner();
 
-	//void Start() override;
+	void Start() override;
 	void Update(float deltaTime) override;
 
-	//void DealDamage(float damage) override;
+	void Fire() override;
 
 private:
-	float ySpeed = -1.f;
-
+	float projectileSpeed = 10.f;
 };
 

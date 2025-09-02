@@ -17,6 +17,7 @@ namespace WE
 		unsigned int windowWidth = 600; //default placeholder values
 		unsigned int windowHeight = 600;
 		const char* gameName = "Game";	
+		WRenderEngine renderEngine = WRenderEngine::SDL;
 		
 	protected:
 		std::unique_ptr<GameContext> gameContext;

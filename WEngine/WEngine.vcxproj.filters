@@ -45,6 +45,9 @@
     <ClInclude Include="src\WEngine\CoroutineInstance.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\WEngine\Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\WEngine\Game.cpp">
@@ -74,8 +77,13 @@
     <ClCompile Include="src\WEngine\CoroutineInstance.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\WEngine\Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\SDL2\lib\x64\SDL2.dll" />
+    <None Include="..\shaders\pointLight_shader_fragment.glsl" />
+    <None Include="..\shaders\pointLight_shader_vertex.glsl" />
   </ItemGroup>
 </Project>

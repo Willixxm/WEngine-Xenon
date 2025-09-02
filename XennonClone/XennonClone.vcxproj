@@ -93,6 +93,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Game\ParallaxBackground.cpp" />
+    <ClCompile Include="src\Game\EnemyProjectile.cpp" />
+    <ClCompile Include="src\Game\EnemyRusher.cpp" />
     <ClCompile Include="src\Game\EnemyLoner.cpp" />
     <ClCompile Include="src\Game\Explosion.cpp" />
     <ClCompile Include="src\Game\Enemy.cpp" />
@@ -102,6 +105,9 @@
     <ClCompile Include="src\Xennon.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Game\ParallaxBackground.h" />
+    <ClInclude Include="src\Game\EnemyProjectile.h" />
+    <ClInclude Include="src\Game\EnemyRusher.h" />
     <ClInclude Include="src\Game\EnemyLoner.h" />
     <ClInclude Include="src\Game\Explosion.h" />
     <ClInclude Include="src\Game\Enemy.h" />

@@ -95,8 +95,6 @@ namespace WE
 		class SDLWindow;
 		std::unique_ptr<SDLWindow> windowPImpl;
 
-		bool renderEngine = WRenderEngine::SDL;
-
 		class Box2D;
 		std::unique_ptr<Box2D> physicsPImpl;
 

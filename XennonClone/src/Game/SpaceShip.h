@@ -4,10 +4,7 @@
 #include "WEngine/InputVectorComponent.h"
 
 
-enum CoroutineID : int
-{
-	invincibleAfterDmg = 0
-};
+
 
 
 class SpaceShip : public WE::Pawn
@@ -25,7 +22,7 @@ public:
 private:
 	float timeUntilNextShot = 0.f;
 	const float fireCoolDown = 0.2f;
-	float moveSpeed = 10.f;
+	float moveSpeed = 12.f;
 
 	bool isInvincible = false;
 	float invincibilityDuration = 0.76f;
@@ -37,6 +34,11 @@ private:
 
 	void PrimaryFire();
 
+private:
+	enum CoroutineID : int
+	{
+		invincibleAfterDmg = 0
+	};
 
 };
 

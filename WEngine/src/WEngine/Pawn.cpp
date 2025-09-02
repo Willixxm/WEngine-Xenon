@@ -20,7 +20,8 @@ namespace WE
 
 	void Pawn::Move(WVec2 moveVector)
 	{
-		GetGameContext()->PHYS_SetLinearVelocityOnPhysObj(this->bodyId, moveVector);
+		if (this)
+			GetGameContext()->PHYS_SetLinearVelocityOnPhysObj(this->bodyId, moveVector);
 	}
 
 	void Pawn::DealDamage(Entity* dealer, float damage)
