@@ -12,6 +12,7 @@ public:
 	~Shader();
 
 	void CreateShaderProgram(const char* vertexPath, const char* fragmentPath);
+	void DeleteShaderProgram();
 
 	void setVertexAttribPointer(const char* param, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void* pointer) const;
 

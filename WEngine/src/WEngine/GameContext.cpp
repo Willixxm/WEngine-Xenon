@@ -218,6 +218,8 @@ namespace WE
 				glDeleteBuffers(1, &baseEbo);
 				glDeleteBuffers(1, &baseVbo);
 				glDeleteBuffers(1, &baseVao);
+
+				shader.DeleteShaderProgram();
 			}
 
 			SDL_DestroyWindow(window);
@@ -228,7 +230,6 @@ namespace WE
 
 			SDL_CloseJoystick(playerJoyStick);
 			playerJoyStick = nullptr;
-			
 
 			SDL_Quit();
 		}
@@ -965,6 +966,8 @@ namespace WE
 		Box2D()
 		{
 			CreateWorld();
+			auto ver = b2GetVersion();
+			std::cout << "Current Box2d version: " << ver.major << "." << ver.minor << "." << ver.revision << '\n';
 		}
 
 		~Box2D()
@@ -1149,11 +1152,7 @@ namespace WE
 	{
 		windowPImpl->UpdateEvents();
 		if (windowPImpl->stopGame)
-		{
-			SYSTEM_DestroyAllEntities();
-			game->stopGame = true;
-		}
-			
+			game->stopGame = true;		
 			
 	}
 	void GameContext::SYSTEM_UpdateEntities(float deltaTime)
@@ -1162,6 +1161,8 @@ namespace WE
 		{
 			instancedEntities[i]->Update(deltaTime);
 		}
+		if (game->stopGame)
+			SYSTEM_DestroyAllEntities();
 	}
 	void GameContext::SYSTEM_Render(float deltaTime)
 	{
@@ -1215,8 +1216,10 @@ namespace WE
 	}
 	void GameContext::PHYS_SetLocationOnPhysObj(WPhysBodyId id, WVec2 pos)
 	{
-		assert(id.isValid, "Tried accessing invalid physics obj!");
-		physicsPImpl->SetObjPos(id, pos);
+		if (id.isValid)
+			physicsPImpl->SetObjPos(id, pos);
+		else
+			std::cout << "Tried accessing invalid physics obj! \n";
 	}
 	void GameContext::PHYS_SetWorldGravity(WVec2 vec)
 	{

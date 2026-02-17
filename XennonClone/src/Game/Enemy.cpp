@@ -53,6 +53,8 @@ void Enemy::On_SensorBeginOverlap(Entity* other)
 {
 	Entity::On_SensorBeginOverlap(other);
 
+	if (!other)
+		return;
 
 	SpaceShip* hitPlayer = dynamic_cast<SpaceShip*>(other);
 	if (hitPlayer)
@@ -61,7 +63,6 @@ void Enemy::On_SensorBeginOverlap(Entity* other)
 
 		if (isSensor)
 			DieByPlayer();
-
 	}
 
 }

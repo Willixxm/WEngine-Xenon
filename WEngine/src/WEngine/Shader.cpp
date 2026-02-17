@@ -7,10 +7,9 @@ Shader::Shader()
 {
 	
 }
-
 Shader::~Shader()
 {
-	glDeleteProgram(id);
+	
 }
 
 void Shader::CreateShaderProgram(const char* vertexPath, const char* fragmentPath)
@@ -64,6 +63,11 @@ void Shader::CreateShaderProgram(const char* vertexPath, const char* fragmentPat
 
 	glDeleteShader(vertex);
 	glDeleteShader(fragment);
+}
+
+void Shader::DeleteShaderProgram()
+{
+	glDeleteProgram(id);
 }
 
 void Shader::setVertexAttribPointer(const char* param, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void* pointer) const
