@@ -115,6 +115,7 @@ namespace WE
 
 	private:
 		std::vector<Entity*> instancedEntities;
+		std::vector<Entity*> entitiesToDestroyAfterUpdate;
 
 	public:
 		template< class T >
@@ -134,6 +135,7 @@ namespace WE
 	private:
 		void On_InstantiateEntity(Entity*, WVec2 pos, WVec2 size);
 		void SYSTEM_DestroyAllEntities();
+		void SYSTEM_DestroyAllEntities_QueuedForDestruction();
 
 	public:
 		void GAME_DestroyEntity(Entity*);

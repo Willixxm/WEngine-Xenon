@@ -36,8 +36,6 @@
     <ClCompile Include="vendor\GLAD\src\glad.c" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\shaders\pointLight_shader_fragment.glsl" />
-    <None Include="..\shaders\pointLight_shader_vertex.glsl" />
     <None Include="vendor\SDL2\lib\x64\SDL2.dll" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -100,7 +98,7 @@
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
     <PostBuildEvent>
-      <Command>xcopy  "$(SolutionDir)bin\$(Configuration)-$(Platform)\$(ProjectName)\$(ProjectName).dll" "C:\dev\WEngine\bin\Release-x64\XennonClone" /Y</Command>
+      <Command>xcopy  "$(SolutionDir)bin\$(Configuration)-$(Platform)\$(ProjectName)\$(ProjectName).dll" "$(SolutionDir)bin\$(Configuration)-$(Platform)\XennonClone" /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -123,7 +121,7 @@
       <AdditionalDependencies>SDL3.lib;box2d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy  "$(SolutionDir)bin\$(Configuration)-$(Platform)\$(ProjectName)\$(ProjectName).dll" "C:\dev\WEngine\bin\Release-x64\XennonClone" /Y</Command>
+      <Command>xcopy  "$(SolutionDir)bin\$(Configuration)-$(Platform)\$(ProjectName)\$(ProjectName).dll" "$(SolutionDir)bin\$(Configuration)-$(Platform)\XennonClone" /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

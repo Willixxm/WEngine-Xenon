@@ -12,7 +12,7 @@ Shader::~Shader()
 	
 }
 
-void Shader::CreateShaderProgram(const char* vertexPath, const char* fragmentPath)
+void Shader::CreateShaderProgram_FromPath(const char* vertexPath, const char* fragmentPath)
 {
 	std::string vertexCode;		// Vertex shader code
 	std::string fragmentCode;	// Fragment shader code
@@ -48,18 +48,21 @@ void Shader::CreateShaderProgram(const char* vertexPath, const char* fragmentPat
 	{
 		std::cerr << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
 	}
-	const char* vShaderCode = vertexCode.c_str();
-	const char* fShaderCode = fragmentCode.c_str();
 
+	CreateShaderProgram_FromShaderCode(vertexCode.c_str(), fragmentCode.c_str());
+}
+
+void Shader::CreateShaderProgram_FromShaderCode(const char* vertexShaderCode, const char* fragmentShaderCode)
+{
 	GLuint vertex, fragment;
-	vertex = compileShader(GL_VERTEX_SHADER, vShaderCode);
-	fragment = compileShader(GL_FRAGMENT_SHADER, fShaderCode);
+	vertex = CompileShader(GL_VERTEX_SHADER, vertexShaderCode);
+	fragment = CompileShader(GL_FRAGMENT_SHADER, fragmentShaderCode);
 
 	id = glCreateProgram();
 	glAttachShader(id, vertex);
 	glAttachShader(id, fragment);
 	glLinkProgram(id);
-	checkCompileErrors(id, "PROGRAM");
+	CheckCompileErrors(id, "PROGRAM");
 
 	glDeleteShader(vertex);
 	glDeleteShader(fragment);
@@ -114,16 +117,16 @@ void Shader::setMat4(const std::string& name, const glm::mat4& mat) const
 
 
 
-GLuint Shader::compileShader(GLenum type, const char* source)
+GLuint Shader::CompileShader(GLenum type, const char* source)
 {
 	GLuint shader = glCreateShader(type);
 	glShaderSource(shader, 1, &source, nullptr);
 	glCompileShader(shader);
-	checkCompileErrors(shader, "SHADER");
+	CheckCompileErrors(shader, "SHADER");
 	return shader;
 }
 
-void Shader::checkCompileErrors(GLuint shader, const std::string& type) const
+void Shader::CheckCompileErrors(GLuint shader, const std::string& type) const
 {
 	GLint success;
 	GLchar infoLog[1024];

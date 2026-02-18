@@ -29,8 +29,6 @@ public:
 
 		BackGround* background = GetGameContext()->GAME_InstantiateEntity<BackGround>(WE::WVec2(0, 0), WE::WVec2(0));
 		ParallaxBackground* parallaxBackground = GetGameContext()->GAME_InstantiateEntity<ParallaxBackground>(WE::WVec2(0, 0), WE::WVec2(0));
-
-
 	}
 
 private:
@@ -53,6 +51,7 @@ public:
 			int num = rand() % 100 + 1;
 			int sign = (num % 2 ? -1 : 1);
 
+			
 			if (num < 25)
 			{
 				Enemy* loner2 = GetGameContext()->GAME_InstantiateEntity<EnemyLoner>(WE::WVec2(sign * 16, 11), WE::WVec2(4));

@@ -11,7 +11,8 @@ public:
 	Shader();
 	~Shader();
 
-	void CreateShaderProgram(const char* vertexPath, const char* fragmentPath);
+	void CreateShaderProgram_FromPath(const char* vertexPath, const char* fragmentPath);
+	void CreateShaderProgram_FromShaderCode(const char* vertexShaderCode, const char* fragmentShaderCode);
 	void DeleteShaderProgram();
 
 	void setVertexAttribPointer(const char* param, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void* pointer) const;
@@ -28,8 +29,8 @@ public:
 	GLuint GetId() const { return id; }
 
 private:
-	GLuint compileShader(GLenum type, const char* source);
-	void checkCompileErrors(GLuint shader, const std::string& type) const;
+	GLuint CompileShader(GLenum type, const char* source);
+	void CheckCompileErrors(GLuint shader, const std::string& type) const;
 
 private:
 	GLuint id;

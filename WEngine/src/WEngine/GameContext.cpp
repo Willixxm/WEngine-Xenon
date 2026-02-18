@@ -19,15 +19,96 @@
 #include "Shader.h"
 
 
-
 namespace WE
 {
+	struct TextureRectParams
+	{
+		
+		void SetParams(int hCount, int vCount)
+		{
+			if (hCount < 1)
+				hCount = 1;
+			if (vCount < 1)
+				vCount = 1;
+
+			hTileCount = hCount;
+			vTileCount = vCount;
+			
+			nTiles = hTileCount * vTileCount;
+			tileSpan = nTiles;
+
+			CalcUV();
+		}
+
+		void CalcUV()
+		{
+			while (animationProgress > tileSpan)
+			{
+				animationProgress -= tileSpan;
+			}
+
+			int x = ((int)animationProgress + tileOffset) % hTileCount;
+			int y = ((int)animationProgress + tileOffset) / hTileCount;
+
+
+			//surfaceRect.x = x * tileWidth;
+			//surfaceRect.y = y * tileHeight;
+			//surfaceRect.w = tileWidth;
+			//surfaceRect.h = tileHeight;
+
+			//tileAspectRatio = tileWidth / tileHeight;
+
+		}
+
+		void AddAnimationTime(float deltaTime)
+		{
+			animationProgress += deltaTime * animationFps;
+
+			CalcUV();
+		}
+
+		void SetAnimationState(float state0to1)
+		{
+			if (state0to1 < 0)
+				state0to1 = 0;
+			if (state0to1 >= 1)
+				state0to1 -= 0.001f;
+
+			animationProgress = state0to1 * (tileSpan);
+
+			CalcUV();
+		}
+
+		int hTileCount = 1;
+		int vTileCount = 1;
+		
+		int nTiles = 1;
+		int tileOffset = 0;
+		int tileSpan = nTiles;
+
+		float tileAspectRatio = 1.f;
+
+		float animationProgress = 0.f;
+		int currentTile = 0;
+		float animationFps = 10.f;
+
+		SDL_FRect surfaceRect;
+	};
+
 	struct RenderGLEntity2D
 	{
 		Entity* entity;
 		std::string	 filePath;
 		unsigned int tex;
-		unsigned int vao;
+
+		TextureRectParams params;
+		
+		int entityWidth = 100;
+		int entityHeight = 100;
+
+		bool autoAnimate = true;
+		float manualAnimationState = 0.5f;
+		int renderLayer = 0;
 	};
 
 	struct TextureInfo
@@ -39,6 +120,8 @@ namespace WE
 		unsigned int horizontalTileCount = 1;
 		unsigned int verticalTileCount = 1;
 		unsigned int totalTiles = 1;
+
+		TextureRectParams params;
 
 		unsigned int tex = 0;
 		std::vector<Entity*> users;
@@ -183,29 +266,35 @@ namespace WE
 			}
 			else
 			{
-				
+				context = SDL_GL_CreateContext(window);
+
+				if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
+				{
+					SDL_Quit();
+					assert(false,"Failed to initialize GLAD \n");
+				}
+
+				//glEnable(GL_DEPTH_TEST);
+
 				glGenVertexArrays(1, &baseVao);
 				glBindVertexArray(baseVao);
 
-				shader.CreateShaderProgram("../shaders/shader_vertex.glsl", "../shaders/shader_fragment.glsl");
+				shader.CreateShaderProgram_FromPath("shaders/shader_vertex.glsl", "shaders/shader_fragment.glsl");
 				shader.Use();
 
 				glGenBuffers(1, &baseVbo);
 				glBindBuffer(GL_ARRAY_BUFFER, baseVbo);
-				glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), squareVertices, GL_STATIC_DRAW);
+				glBufferData(GL_ARRAY_BUFFER, sizeof(squareVertices), squareVertices, GL_STATIC_DRAW);
 
 				glGenBuffers(1, &baseEbo);
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, baseEbo);
-				glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(float), squareElements, GL_STATIC_DRAW);
+				glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(squareElements), squareElements, GL_STATIC_DRAW);
 
-				shader.setVertexAttribPointer("position", 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-
-
-
+				shader.setVertexAttribPointer("position", 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+				shader.setVertexAttribPointer("texCoord", 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+				
+				glBindVertexArray(0);
 			}
-
-
-
 		}
 
 		~SDLWindow()
@@ -363,7 +452,7 @@ namespace WE
 			if (renderEngine == WRenderEngine::SDL)
 				AddToSDLRender(entity, filePath, hTiles, vTiles, tileOffset, tileSpan, width, height, renderLayer);
 			else
-				AddToGLRender(entity, filePath);
+				AddToGLRender(entity, filePath, hTiles, vTiles, tileOffset, tileSpan, width, height, renderLayer);
 		}
 		void RemoveFromRender(Entity* entity)
 		{
@@ -382,6 +471,9 @@ namespace WE
 		}
 
 	private:
+		// ===============
+		// ---   SDL   ---
+		// ===============
 		void RenderFrameSDL(float deltaTime)
 		{
 
@@ -634,11 +726,17 @@ namespace WE
 
 		
 	private:
+		// ===============
+		// --- OPEN GL ---
+		// ===============
 		void RenderFrameGL(float deltaTime)
 		{
-
 			glClearColor(0.f, 0.f, 0.f, 0.f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			
+			glBindVertexArray(baseVao);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, baseEbo);
+			shader.Use();
 
 			for (size_t i = 0; i < renderGLEntities.size(); ++i)
 			{
@@ -650,32 +748,37 @@ namespace WE
 						break; //exit loop if current count exceeds new vector size (after invalid entities removal)
 				}
 
-				
-				//glm::mat4 model = renderGLEntities[i]
+				glm::mat4 model = glm::mat4(1.f);
 
-				
+				if (renderGLEntities[i].entityHeight || renderGLEntities[i].entityWidth) //entities with 0 height and width are to be rendered to 'fit' the screen (such as the background)
+				{
+					// position
+					model[3][0] = (renderGLEntities[i].entity->position.x - cameraPosition.x) * 2 * ((float)windowHeight / (float)windowWidth) / orthoCameraSize;
+					model[3][1] = (renderGLEntities[i].entity->position.y - cameraPosition.y) * 2 / orthoCameraSize;
+					//model[3][2] = renderGLEntities[i].entity->renderLayer * -0.001;
 
-				//renderGLEntities[i].shader->setMat4("model", model);
-				
+					// scale
+					model[0] *= renderGLEntities[i].entityWidth * ((float)windowHeight / (float)windowWidth) / orthoCameraSize;
+					model[1] *= (float)renderGLEntities[i].entityHeight / orthoCameraSize;
+				}				
 
-				//glBindVertexArray(renderGLEntities[i].vao);
-				//glBindTexture(GL_TEXTURE_2D, renderObjects3D[i].tex);
+				shader.setMat4("model", model);
 
-				//draw elements here (create vbo for square on contructor)
-				
-				glBindVertexArray(0);
-				glBindTexture(GL_TEXTURE_2D, 0);
+				glBindTexture(GL_TEXTURE_2D, renderGLEntities[i].tex);
+
+				glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 			}
 
+			glBindVertexArray(0);
+			glBindTexture(GL_TEXTURE_2D, 0);
+
 			SDL_GL_SwapWindow(window);
-
-
-
-
 		}
 
-		void AddToGLRender(Entity* entity, std::string textureFilePath)
+		void AddToGLRender(Entity* entity, std::string textureFilePath, int hTiles, int vTiles, int tileOffset, int tileSpan, float width, float height, int renderLayer)
 		{
+			//textureFilePath = PNG_PLACEHOLDER;
+
 			if (textureFilePath == "")
 				textureFilePath = BMP_PLACEHOLDER;
 
@@ -688,7 +791,8 @@ namespace WE
 
 			while (true)
 			{
-				texture = GetTextureInfoGL(textureFilePath);
+				texture = GetTextureInfoGL(textureFilePath, hTiles, vTiles);
+				
 
 				if (texture.isValid)
 					break;
@@ -709,18 +813,15 @@ namespace WE
 			newObj.entity = entity;
 			newObj.filePath = textureFilePath;
 			newObj.tex = texture.tex;
-
-
-			//gen and bind vao
-			glGenVertexArrays(1, &newObj.vao);
-			glBindVertexArray(newObj.vao);
-
-			glBindTexture(GL_TEXTURE_2D, texture.tex);
-
-
-			glBindVertexArray(0);
+			newObj.params = texture.params;
+			newObj.renderLayer = renderLayer;
+			newObj.entityWidth = width;
+			newObj.entityHeight = height;
+			newObj.params.tileOffset = tileOffset;
+			newObj.params.tileSpan = tileSpan;
 
 			renderGLEntities.push_back(newObj);
+			GL_OrderEntitiesByLayer();
 		}
 		void RemoveFromGLRender(Entity* entity)
 		{
@@ -735,7 +836,7 @@ namespace WE
 
 				RemoveTextureUserGL(renderGLEntities[i].filePath, entity);
 
-				glDeleteVertexArrays(1, &renderGLEntities[i].vao);
+				//glDeleteVertexArrays(1, &renderGLEntities[i].vao);
 
 				renderGLEntities.erase(renderGLEntities.begin() + i);
 
@@ -777,7 +878,7 @@ namespace WE
 					UnloadUnusedTexturesGL(LoadedTextures[i].filepath);
 			}
 		}
-		TextureInfo GetTextureInfoGL(const std::string& filepath)
+		TextureInfo GetTextureInfoGL(const std::string& filepath, int hTiles, int vTiles)
 		{
 			//If texture is already parsed and loaded, return respective ID;
 			for (size_t i = 0; i < LoadedTextures.size(); ++i)
@@ -791,11 +892,12 @@ namespace WE
 			if (LoadTextureFileGL(filepath, LoadedTexture))
 			{
 				LoadedTexture.isValid = true;
+				LoadedTexture.params.SetParams(hTiles, vTiles);
 				LoadedTextures.push_back(LoadedTexture);
 			}
 			return LoadedTexture;
 		}
-		bool LoadTextureFileGL(const std::string& filepath, TextureInfo LoadedTexture)
+		bool LoadTextureFileGL(const std::string& filepath, TextureInfo& LoadedTexture)
 		{
 			// load and generate the texture
 			int width, height, nrChannels;
@@ -815,13 +917,13 @@ namespace WE
 			glGenTextures(1, &LoadedTexture.tex);
 			glBindTexture(GL_TEXTURE_2D, LoadedTexture.tex);
 
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+
 			// set the texture wrapping/filtering options (on the currently bound texture object)
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);			
 			glGenerateMipmap(GL_TEXTURE_2D);
 
 			glBindTexture(GL_TEXTURE_2D, 0);
@@ -863,7 +965,14 @@ namespace WE
 			}
 		}
 
-
+		void GL_OrderEntitiesByLayer()
+		{
+			std::sort(renderGLEntities.begin(), renderGLEntities.end(),
+				[](const RenderGLEntity2D& a, const RenderGLEntity2D& b)
+				{
+					return a.renderLayer < b.renderLayer;
+				});
+		}
 
 
 	public:
@@ -902,7 +1011,6 @@ namespace WE
 			}
 		}
 
-		
 
 	private:
 		std::vector<RenderGLEntity2D> renderGLEntities;
@@ -913,6 +1021,7 @@ namespace WE
 
 
 		const std::string BMP_PLACEHOLDER = "graphics/bblogo.bmp";
+		const std::string PNG_PLACEHOLDER = "graphics/ProtoRed.png";
 
 		const std::string LOG_TEXTURE_LOADED = "[TEXTURE] GPU++   loaded ----> ";
 		const std::string LOG_TEXTURE_UNLOAD = "[TEXTURE] GPU--   unloaded --> ";
@@ -924,10 +1033,12 @@ namespace WE
 
 
 		SDL_Window* window = nullptr;
+		SDL_GLContext context;
 		SDL_Renderer* renderTarget = nullptr;
 		std::string windowName;
 		unsigned int windowWidth;
 		unsigned int windowHeight;
+
 
 		WRenderEngine renderEngine;
 
@@ -935,12 +1046,12 @@ namespace WE
 		GLuint baseVao;
 
 		GLuint baseVbo;
-		float squareVertices[8]{
-			-0.5f, 0.5f,		0.5f, 0.5f,
-			-0.5f, -0.5f,		0.5, -0.5f };
+		float squareVertices[16]{
+			-1.f, 1.f, 0.f, 1.f,		1.f, 1.f, 1.f, 1.f,
+			-1.f, -1.f, 0.f, 0.f,		1.f, -1.f, 1.f, 0.f };
 
 		GLuint baseEbo;
-		float squareElements[6]{
+		unsigned int squareElements[6]{
 			0, 1, 2,	2, 1, 3 };
 
 		float orthoCameraSize = 10;
@@ -1163,6 +1274,7 @@ namespace WE
 		}
 		if (game->stopGame)
 			SYSTEM_DestroyAllEntities();
+		SYSTEM_DestroyAllEntities_QueuedForDestruction();
 	}
 	void GameContext::SYSTEM_Render(float deltaTime)
 	{
@@ -1196,7 +1308,6 @@ namespace WE
 		{
 			entity->bodyId = physicsPImpl->CreateObj(entity, bodyType, sizeOverride, collisionLayer, collidesWith, isSensor, density);
 		}
-			
 	}
 
 	WVec2 GameContext::SYSTEM_GetLocationOfPhysObj(WPhysBodyId id)
@@ -1281,21 +1392,30 @@ namespace WE
 	
 	void GameContext::GAME_DestroyEntity(Entity* entity)
 	{
-		for (size_t i = 0; i < instancedEntities.size(); ++i)
+		//register for destruction at the end of the game loop
+		entitiesToDestroyAfterUpdate.push_back(entity);
+	}
+	void GameContext::SYSTEM_DestroyAllEntities_QueuedForDestruction()
+	{
+		for (auto entity : entitiesToDestroyAfterUpdate)
 		{
-			if (instancedEntities[i] != entity)
-				continue;
-			
-			if(instancedEntities[i]->bodyId.isValid)
-				physicsPImpl->DestroyObj(instancedEntities[i]->bodyId);
-			
-			windowPImpl->RemoveFromRender(instancedEntities[i]);
+			for (size_t i = 0; i < instancedEntities.size(); ++i)
+			{
+				if (instancedEntities[i] != entity)
+					continue;
 
-			delete instancedEntities[i];
-			instancedEntities[i] = nullptr;
-			instancedEntities.erase(instancedEntities.begin() + i);
+				if (instancedEntities[i]->bodyId.isValid)
+					physicsPImpl->DestroyObj(instancedEntities[i]->bodyId);
 
+				windowPImpl->RemoveFromRender(instancedEntities[i]);
+
+				delete instancedEntities[i];
+				instancedEntities[i] = nullptr;
+				instancedEntities.erase(instancedEntities.begin() + i);
+				break;
+			}
 		}
+		entitiesToDestroyAfterUpdate.clear();
 	}
 	void GameContext::SYSTEM_DestroyAllEntities()
 	{
@@ -1311,7 +1431,6 @@ namespace WE
 			instancedEntities.erase(instancedEntities.begin() + i);
 		}
 	}
-
 
 	void GameContext::MEMORY_SetAutoUnloadAssetIfUnused(bool enabled)
 	{

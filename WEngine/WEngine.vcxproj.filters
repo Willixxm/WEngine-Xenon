@@ -83,7 +83,5 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="vendor\SDL2\lib\x64\SDL2.dll" />
-    <None Include="..\shaders\pointLight_shader_fragment.glsl" />
-    <None Include="..\shaders\pointLight_shader_vertex.glsl" />
   </ItemGroup>
 </Project>
