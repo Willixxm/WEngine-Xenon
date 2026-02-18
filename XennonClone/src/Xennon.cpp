@@ -11,7 +11,7 @@ public:
 		windowWidth = 500;
 		windowHeight = windowWidth * 4/3;
 		gameName = "Xennon Clone";
-		renderEngine = WRenderEngine::OpenGL;
+		renderEngine = WRenderEngine::SDL;
 	}
 
 	~Xennon()
