@@ -11,7 +11,6 @@ out vec2 TexCoord;
 
 void main()
 {
-    TexCoord = texCoord;
-        
+    TexCoord = texCoord * UVTileSize + UVTileOffset;   
     gl_Position = model * vec4(position, 1.0, 1.0);
 }

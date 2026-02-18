@@ -21,10 +21,13 @@
 
 namespace WE
 {
+	// ================
+	// --- OpenGL -----
+	// ================
 	struct TextureRectParams
 	{
 		
-		void SetParams(int hCount, int vCount)
+		void SetParams(int hCount, int vCount, int tWidth, int tHeight)
 		{
 			if (hCount < 1)
 				hCount = 1;
@@ -36,6 +39,11 @@ namespace WE
 			
 			nTiles = hTileCount * vTileCount;
 			tileSpan = nTiles;
+
+			UVTileSize.x = 1.f / hTileCount;
+			UVTileSize.y = 1.f / vTileCount;
+
+			tileAspectRatio = (UVTileSize.x * tWidth) / (UVTileSize.y * tHeight);
 
 			CalcUV();
 		}
@@ -50,14 +58,8 @@ namespace WE
 			int x = ((int)animationProgress + tileOffset) % hTileCount;
 			int y = ((int)animationProgress + tileOffset) / hTileCount;
 
-
-			//surfaceRect.x = x * tileWidth;
-			//surfaceRect.y = y * tileHeight;
-			//surfaceRect.w = tileWidth;
-			//surfaceRect.h = tileHeight;
-
-			//tileAspectRatio = tileWidth / tileHeight;
-
+			UVTileOffset.x = x * UVTileSize.x;
+			UVTileOffset.y = y * UVTileSize.y;
 		}
 
 		void AddAnimationTime(float deltaTime)
@@ -67,14 +69,14 @@ namespace WE
 			CalcUV();
 		}
 
-		void SetAnimationState(float state0to1)
+		void SetAnimationState(float state_0_to_1)
 		{
-			if (state0to1 < 0)
-				state0to1 = 0;
-			if (state0to1 >= 1)
-				state0to1 -= 0.001f;
+			if (state_0_to_1 < 0)
+				state_0_to_1 = 0;
+			if (state_0_to_1 >= 1)
+				state_0_to_1 -= 0.001f;
 
-			animationProgress = state0to1 * (tileSpan);
+			animationProgress = state_0_to_1 * (tileSpan);
 
 			CalcUV();
 		}
@@ -92,14 +94,15 @@ namespace WE
 		int currentTile = 0;
 		float animationFps = 10.f;
 
-		SDL_FRect surfaceRect;
+		WVec2 UVTileSize;
+		WVec2 UVTileOffset;
 	};
 
 	struct RenderGLEntity2D
 	{
-		Entity* entity;
+		Entity* entity = nullptr;
 		std::string	 filePath;
-		unsigned int tex;
+		unsigned int tex = 0;
 
 		TextureRectParams params;
 		
@@ -119,7 +122,6 @@ namespace WE
 		unsigned int pixelHeight = 0;
 		unsigned int horizontalTileCount = 1;
 		unsigned int verticalTileCount = 1;
-		unsigned int totalTiles = 1;
 
 		TextureRectParams params;
 
@@ -127,6 +129,9 @@ namespace WE
 		std::vector<Entity*> users;
 	};
 
+	// ================
+	// --- SDL --------
+	// ================
 	struct SurfaceRectParams
 	{
 		void SetParams(int hCount, int vCount, int tWidth, int tHeight)
@@ -148,6 +153,11 @@ namespace WE
 			nTiles = hTileCount * vTileCount;
 			tileSpan = nTiles;
 
+			surfaceRect.w = tileWidth;
+			surfaceRect.h = tileHeight;
+
+			tileAspectRatio = tileWidth / tileHeight;
+
 			CalcRect();
 		}
 
@@ -164,11 +174,6 @@ namespace WE
 
 			surfaceRect.x = x * tileWidth;
 			surfaceRect.y = y * tileHeight;
-			surfaceRect.w = tileWidth;
-			surfaceRect.h = tileHeight;
-			
-			tileAspectRatio = tileWidth / tileHeight;
-
 		}
 
 		void AddAnimationTime(float deltaTime)
@@ -178,14 +183,14 @@ namespace WE
 			CalcRect();
 		}
 
-		void SetAnimationState(float state0to1)
+		void SetAnimationState(float state_0_to_1)
 		{
-			if (state0to1 < 0)
-				state0to1 = 0;
-			if (state0to1 >= 1)
-				state0to1 -= 0.001f;
+			if (state_0_to_1 < 0)
+				state_0_to_1 = 0;
+			if (state_0_to_1 >= 1) 
+				state_0_to_1 -= 0.0001f;
 
-			animationProgress = state0to1 * (tileSpan);
+			animationProgress = state_0_to_1 * (tileSpan);
 
 			CalcRect();
 		}
@@ -206,13 +211,12 @@ namespace WE
 		int currentTile = 0;
 		float animationFps = 10.f;
 
-		SDL_FRect surfaceRect;
-
+		SDL_FRect surfaceRect = SDL_FRect();
 	};
 
 	struct RenderSDLEntity2D
 	{
-		Entity* entity;
+		Entity* entity = nullptr;
 		std::string filepath;
 		SDL_Texture* texture = nullptr;
 
@@ -470,13 +474,92 @@ namespace WE
 				UnloadAllTexturesGL();
 		}
 
+		void SetAnimationParameters(Entity* entity, bool autoAnimate, float animationFps)
+		{
+			if (renderEngine == WRenderEngine::SDL)
+			{
+				//check if entity is in render list
+				for (size_t i = 0; i < renderSDLEntities.size(); ++i)
+				{
+					if (renderSDLEntities[i].entity != entity)
+						continue;
+
+					renderSDLEntities[i].autoAnimate = autoAnimate;
+					renderSDLEntities[i].params.animationFps = animationFps;
+
+				}
+			}
+			else
+			{
+				//check if entity is in render list
+				for (size_t i = 0; i < renderGLEntities.size(); ++i)
+				{
+					if (renderGLEntities[i].entity != entity)
+						continue;
+
+					renderGLEntities[i].autoAnimate = autoAnimate;
+					renderGLEntities[i].params.animationFps = animationFps;
+
+				}
+			}
+		}
+		void SetAnimationTileParameters(Entity* entity, int tileOffset, int tileSpan)
+		{
+			if (renderEngine == WRenderEngine::SDL)
+			{
+				//check if entity is in render list
+				for (size_t i = 0; i < renderSDLEntities.size(); ++i)
+				{
+					if (renderSDLEntities[i].entity != entity)
+						continue;
+
+					renderSDLEntities[i].params.tileOffset = tileOffset;
+					renderSDLEntities[i].params.tileSpan = tileSpan;
+
+				}
+			}
+			else
+			{
+				//check if entity is in render list
+				for (size_t i = 0; i < renderGLEntities.size(); ++i)
+				{
+					if (renderGLEntities[i].entity != entity)
+						continue;
+
+					renderGLEntities[i].params.tileOffset = tileOffset;
+					renderGLEntities[i].params.tileSpan = tileSpan;
+
+				}
+			}
+		}
+		void SetAnimationStateValue(Entity* entity, float state_0_to_1)
+		{
+			if (renderEngine == WRenderEngine::SDL)
+			{
+				for (size_t i = 0; i < renderSDLEntities.size(); ++i)
+				{
+					if (renderSDLEntities[i].entity == entity)
+						renderSDLEntities[i].manualAnimationState = state_0_to_1;
+				}
+			}
+			else
+			{
+				for (size_t i = 0; i < renderGLEntities.size(); ++i)
+				{
+					if (renderGLEntities[i].entity == entity)
+						renderGLEntities[i].manualAnimationState = state_0_to_1;
+				}
+			}	
+		}
+
+
 	private:
 		// ===============
 		// ---   SDL   ---
 		// ===============
 		void RenderFrameSDL(float deltaTime)
 		{
-
+			RemoveFromSDLRender(nullptr); // removes all invalid entities
 			SDL_RenderClear(renderTarget);
 
 
@@ -484,7 +567,7 @@ namespace WE
 			{
 				if (renderSDLEntities[i].entity == nullptr)
 				{
-					std::cout << "NULL ENTITY \n";
+					std::cout << "NULL ENTITY ON SDL RENDER LIST\n";
 					continue;
 				}
 
@@ -641,7 +724,6 @@ namespace WE
 
 				LoadedSurface.isValid = true;
 
-
 				float tWidth;
 				float tHeight;
 
@@ -669,8 +751,6 @@ namespace WE
 
 				LoadedSurface.texture = SDL_CreateTextureFromSurface(renderTarget, surface);
 				SDL_SetTextureScaleMode(LoadedSurface.texture, SDL_ScaleMode::SDL_SCALEMODE_NEAREST);
-
-
 
 				SDL_DestroySurface(surface);
 
@@ -723,7 +803,6 @@ namespace WE
 					return a.renderLayer < b.renderLayer;
 				});
 		}
-
 		
 	private:
 		// ===============
@@ -748,6 +827,12 @@ namespace WE
 						break; //exit loop if current count exceeds new vector size (after invalid entities removal)
 				}
 
+				if (renderGLEntities[i].autoAnimate)
+					renderGLEntities[i].params.AddAnimationTime(deltaTime);
+				else
+					renderGLEntities[i].params.SetAnimationState(renderGLEntities[i].manualAnimationState);
+
+
 				glm::mat4 model = glm::mat4(1.f);
 
 				if (renderGLEntities[i].entityHeight || renderGLEntities[i].entityWidth) //entities with 0 height and width are to be rendered to 'fit' the screen (such as the background)
@@ -759,10 +844,12 @@ namespace WE
 
 					// scale
 					model[0] *= renderGLEntities[i].entityWidth * ((float)windowHeight / (float)windowWidth) / orthoCameraSize;
-					model[1] *= (float)renderGLEntities[i].entityHeight / orthoCameraSize;
+					model[1] *= (renderGLEntities[i].entityHeight / renderGLEntities[i].params.tileAspectRatio) / orthoCameraSize;
 				}				
 
 				shader.setMat4("model", model);
+				shader.set2Float("UVTileSize", renderGLEntities[i].params.UVTileSize.x, renderGLEntities[i].params.UVTileSize.y);
+				shader.set2Float("UVTileOffset", renderGLEntities[i].params.UVTileOffset.x, renderGLEntities[i].params.UVTileOffset.y);
 
 				glBindTexture(GL_TEXTURE_2D, renderGLEntities[i].tex);
 
@@ -892,7 +979,7 @@ namespace WE
 			if (LoadTextureFileGL(filepath, LoadedTexture))
 			{
 				LoadedTexture.isValid = true;
-				LoadedTexture.params.SetParams(hTiles, vTiles);
+				LoadedTexture.params.SetParams(hTiles, vTiles, LoadedTexture.pixelWidth, LoadedTexture.pixelHeight);
 				LoadedTextures.push_back(LoadedTexture);
 			}
 			return LoadedTexture;
@@ -901,7 +988,7 @@ namespace WE
 		{
 			// load and generate the texture
 			int width, height, nrChannels;
-			stbi_set_flip_vertically_on_load(true);
+			//stbi_set_flip_vertically_on_load(true);
 			unsigned char* data = stbi_load(filepath.c_str(), &width, &height, &nrChannels, 0);
 			if (!data)
 			{
@@ -910,6 +997,9 @@ namespace WE
 			}
 			
 			std::cout << LOG_TEXTURE_LOADED << "[" << filepath << "]\n";
+
+			LoadedTexture.pixelWidth = width;
+			LoadedTexture.pixelHeight = height;
 
 			//unbind any vao
 			glBindVertexArray(0);
@@ -975,41 +1065,9 @@ namespace WE
 		}
 
 
+
 	public:
-		void SetAnimationParameters(Entity* entity, bool autoAnimate, float animationFps)
-		{
-			//check if entity is in render list
-			for (size_t i = 0; i < renderSDLEntities.size(); ++i)
-			{
-				if (renderSDLEntities[i].entity != entity)
-					continue;
-
-				renderSDLEntities[i].autoAnimate = autoAnimate;
-				renderSDLEntities[i].params.animationFps = animationFps;
-
-			}
-		}
-		void SetAnimationTileParameters(Entity* entity, int tileOffset, int tileSpan)
-		{
-			//check if entity is in render list
-			for (size_t i = 0; i < renderSDLEntities.size(); ++i)
-			{
-				if (renderSDLEntities[i].entity != entity)
-					continue;
-
-				renderSDLEntities[i].params.tileOffset = tileOffset;
-				renderSDLEntities[i].params.tileSpan = tileSpan;
-
-			}
-		}
-		void SetAnimationStateValue(Entity* entity, float state_0to1)
-		{
-			for (size_t i = 0; i < renderSDLEntities.size(); ++i)
-			{
-				if (renderSDLEntities[i].entity == entity)
-					renderSDLEntities[i].manualAnimationState = state_0to1;
-			}
-		}
+		
 
 
 	private:
@@ -1047,8 +1105,8 @@ namespace WE
 
 		GLuint baseVbo;
 		float squareVertices[16]{
-			-1.f, 1.f, 0.f, 1.f,		1.f, 1.f, 1.f, 1.f,
-			-1.f, -1.f, 0.f, 0.f,		1.f, -1.f, 1.f, 0.f };
+			-1.f, 1.f, 0.f, 0.f,		1.f, 1.f, 1.f, 0.f,
+			-1.f, -1.f, 0.f, 1.f,		1.f, -1.f, 1.f, 1.f };
 
 		GLuint baseEbo;
 		unsigned int squareElements[6]{
@@ -1357,9 +1415,9 @@ namespace WE
 	{
 		windowPImpl->SetAnimationTileParameters(entity, tileOffset, tileSpan);
 	}
-	void GameContext::RENDER_SetManualAnimationState(Entity* entity, float state_0to1)
+	void GameContext::RENDER_SetManualAnimationState(Entity* entity, float state_0_to_1)
 	{
-		windowPImpl->SetAnimationStateValue(entity, state_0to1);
+		windowPImpl->SetAnimationStateValue(entity, state_0_to_1);
 	}
 	
 	void GameContext::RENDER_SetOrthoCameraSize(float size)
@@ -1375,9 +1433,6 @@ namespace WE
 	{
 		CoroutineInstance* corInstance = new CoroutineInstance(caller, ID, duration);
 		On_InstantiateEntity(corInstance, WVec2(0), WVec2(0));
-
-		//instancedEntities.push_back(corInstance);
-		//corInstance->Start();
 	}
 	void GameContext::On_InstantiateEntity(Entity* entity, WVec2 pos, WVec2 size)
 	{
