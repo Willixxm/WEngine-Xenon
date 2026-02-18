@@ -260,6 +260,8 @@ namespace WE
 			window = SDL_CreateWindow(windowName.c_str(), windowWidth, windowHeight, SDL_WINDOW_OPENGL);
 			assert(window, "failed to create window");
 
+			SDL_SetWindowRelativeMouseMode(window, true);
+
 			if (renderEngine == WRenderEngine::SDL)
 			{
 				renderTarget = SDL_CreateRenderer(window, NULL);
@@ -279,6 +281,8 @@ namespace WE
 				}
 
 				//glEnable(GL_DEPTH_TEST);
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 				glGenVertexArrays(1, &baseVao);
 				glBindVertexArray(baseVao);
@@ -559,18 +563,16 @@ namespace WE
 		// ===============
 		void RenderFrameSDL(float deltaTime)
 		{
-			RemoveFromSDLRender(nullptr); // removes all invalid entities
 			SDL_RenderClear(renderTarget);
-
 
 			for (size_t i = 0; i < renderSDLEntities.size(); ++i)
 			{
 				if (renderSDLEntities[i].entity == nullptr)
 				{
+					RemoveFromSDLRender(nullptr); // removes all invalid entities
 					std::cout << "NULL ENTITY ON SDL RENDER LIST\n";
 					continue;
 				}
-
 
 				if (renderSDLEntities[i].autoAnimate)
 				{
@@ -580,7 +582,6 @@ namespace WE
 				{
 					renderSDLEntities[i].params.SetAnimationState(renderSDLEntities[i].manualAnimationState);
 				}
-
 
 				WVec2 location = renderSDLEntities[i].entity->GetLocation();
 
@@ -989,7 +990,8 @@ namespace WE
 			// load and generate the texture
 			int width, height, nrChannels;
 			//stbi_set_flip_vertically_on_load(true);
-			unsigned char* data = stbi_load(filepath.c_str(), &width, &height, &nrChannels, 0);
+			unsigned char* data = stbi_load(filepath.c_str(), &width, &height, &nrChannels, 4); //use for channels to later calculate alpha based on color
+			
 			if (!data)
 			{
 				std::cout << LOG_TEXTURE_FAILED << "[" << filepath << "]\n";
@@ -1001,19 +1003,36 @@ namespace WE
 			LoadedTexture.pixelWidth = width;
 			LoadedTexture.pixelHeight = height;
 
+			for (int i = 0; i < width * height; i++)
+			{
+				if (data[i * 4 + 0] == 255 &&
+					data[i * 4 + 1] == 0 &&
+					data[i * 4 + 2] == 255)
+				{
+					data[i * 4 + 0] = 0;
+					data[i * 4 + 1] = 0;
+					data[i * 4 + 2] = 0;
+					data[i * 4 + 3] = 0;
+				}
+				else
+				{
+					data[i * 4 + 3] = 255;
+				}
+			}
+
 			//unbind any vao
 			glBindVertexArray(0);
 
 			glGenTextures(1, &LoadedTexture.tex);
 			glBindTexture(GL_TEXTURE_2D, LoadedTexture.tex);
 
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
 			// set the texture wrapping/filtering options (on the currently bound texture object)
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);			
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);			
 			glGenerateMipmap(GL_TEXTURE_2D);
 
 			glBindTexture(GL_TEXTURE_2D, 0);
@@ -1064,10 +1083,6 @@ namespace WE
 				});
 		}
 
-
-
-	public:
-		
 
 
 	private:

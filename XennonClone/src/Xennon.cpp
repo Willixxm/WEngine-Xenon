@@ -24,10 +24,8 @@ public:
 	{
 		Game::Start();
 		
-		XennonLevel* level = gameContext->GAME_InstantiateEntity<XennonLevel>(WE::WVec2(0, 0), WE::WVec2(0, 0));
-		
+		XennonLevel* level = gameContext->GAME_InstantiateEntity<XennonLevel>(WE::WVec2(0, 0), WE::WVec2(0, 0));	
 	}
-
 };
 
 
