@@ -14,17 +14,19 @@ public:
 	void Start() override;
 	void Update(float deltaTime) override;
 
+private:
 	void CreateTiles();
+	void GenTileFromArray(const std::vector<double>& tileIDs, int x_offset, int y_offset, int layer, std::vector<WE::Entity*>& entities);
 
 protected:
 	std::string filePath = "graphics/Blocks.bmp";
 
-	float tileSizeMult = 5.f;
-	int layer = -20;
+	int layer_close = -20;
+	float scrollVel_close = 4.f;
+	std::vector<Entity*> tileEntities_close;
 
-	float scrollVel = 4.f;
-
-	std::vector<Entity*> tileEntities;
-
+	int layer_far = -20;
+	float scrollVel_far = 2.f;
+	std::vector<Entity*> tileEntities_far;
 
 };

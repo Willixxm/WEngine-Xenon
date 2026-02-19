@@ -119,13 +119,13 @@ namespace WE
 
 	public:
 		template< class T >
-		T* GAME_InstantiateEntity(WVec2 pos, WVec2 size)
+		T* GAME_InstantiateEntity(WVec2 pos, float rotation, WVec2 size)
 		{
 			static_assert(std::is_base_of<Entity, T>::value, "T must be derived from Entity");
 			
 			T* newEntity = new T();
 
-			On_InstantiateEntity(newEntity, pos, size);
+			On_InstantiateEntity(newEntity, pos, rotation, size);
 
 			return newEntity;
 		}
@@ -133,7 +133,7 @@ namespace WE
 		void GAME_StartCoroutine(Entity* caller, int ID, float duration);
 
 	private:
-		void On_InstantiateEntity(Entity*, WVec2 pos, WVec2 size);
+		void On_InstantiateEntity(Entity*, WVec2 pos, float rotation, WVec2 size);
 		void SYSTEM_DestroyAllEntities();
 		void SYSTEM_DestroyAllEntities_QueuedForDestruction();
 
@@ -146,6 +146,7 @@ namespace WE
 		void PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType, WVec2 sizeOverride, uint32_t collisionLayer, uint32_t collidesWith, bool isSensor, float density);
 		void PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType); 
 		void PHYS_SetLocationOnPhysObj(WPhysBodyId id, WVec2 pos);
+		void PHYS_SetRotationOnPhysObj(WPhysBodyId id, float rotationRad);
 		void PHYS_SetLinearVelocityOnPhysObj(WPhysBodyId id, WVec2 vel);
 
 		WVec2 SYSTEM_GetLocationOfPhysObj(WPhysBodyId id);
@@ -154,8 +155,8 @@ namespace WE
 		void RENDER_SetOrthoCameraSize(float size);
 		void RENDER_SetOrthoCameraPosition(WVec2 newPos);
 
-		void RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer, WVec2 sizeOverride);
-		void RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer);
+		void RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer_close, WVec2 sizeOverride);
+		void RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer_close);
 
 		void RENDER_RemoveRenderComponent(Entity* entity);
 

@@ -17,7 +17,7 @@ public:
 
 private:
 	float lifeTime = 2.f;
-	float projectileSpeed = 20.f;
+	float projectileSpeed = 30.f;
 	float projectileDmg = 25.f;
 
 

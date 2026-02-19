@@ -24,7 +24,7 @@ EnemyLoner::EnemyLoner()
 
 	lifePoints = 75.f;
 
-	shotCooldownTime = 2.5f;
+	shotCooldownTime = 2.0f;
 	projectileSpeed = 10.f;
 
 
@@ -58,11 +58,8 @@ void EnemyLoner::Update(float deltaTime)
 
 void EnemyLoner::Fire()
 {
-	EnemyProjectile* projectile = GetGameContext()->GAME_InstantiateEntity<EnemyProjectile>(GetLocation() + WVec2(0, -1), WVec2(2));
+	EnemyProjectile* projectile = GetGameContext()->GAME_InstantiateEntity<EnemyProjectile>(GetLocation() + WVec2(0, -1), GetRotation(), WVec2(2));
 	GetGameContext()->PHYS_SetLinearVelocityOnPhysObj(projectile->bodyId, WVec2(0, -projectileSpeed));
 }
-
-
-
 
 

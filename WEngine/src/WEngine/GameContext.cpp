@@ -18,6 +18,7 @@
 
 #include "Shader.h"
 
+#include <gtc/matrix_transform.hpp>
 
 namespace WE
 {
@@ -846,6 +847,8 @@ namespace WE
 					// scale
 					model[0] *= renderGLEntities[i].entityWidth * ((float)windowHeight / (float)windowWidth) / orthoCameraSize;
 					model[1] *= (renderGLEntities[i].entityHeight / renderGLEntities[i].params.tileAspectRatio) / orthoCameraSize;
+
+					model = glm::rotate(model, renderGLEntities[i].entity->rotationRad, glm::vec3(0.f, 0.f, 1.f));
 				}				
 
 				shader.setMat4("model", model);
@@ -1233,6 +1236,13 @@ namespace WE
 			return WVec2(position.x, position.y);
 		}
 
+		float GetObjRotationRad(WPhysBodyId id)
+		{
+			b2Rot rotation = b2Body_GetRotation(GetB2IdFromWId(id));
+
+			return acos(rotation.c) * (signbit(rotation.s) ? -1 : 1);
+		}
+
 		void SetObjPos(WPhysBodyId id, WVec2 pos)
 		{
 			b2BodyId b2Id = GetB2IdFromWId(id);
@@ -1241,6 +1251,17 @@ namespace WE
 			position.y = pos.y;
 			b2Rot rotation = b2Body_GetRotation(b2Id);
 
+			b2Body_SetTransform(b2Id, position, rotation);
+		}
+
+		void SetObjRotationRad(WPhysBodyId id, float rotationRad)
+		{
+			b2BodyId b2Id = GetB2IdFromWId(id);
+			b2Rot rotation;
+			rotation.c = cos(rotationRad);
+			rotation.s = sin(rotationRad);
+			b2Vec2 position = b2Body_GetPosition(b2Id);
+			
 			b2Body_SetTransform(b2Id, position, rotation);
 		}
 
@@ -1269,8 +1290,16 @@ namespace WE
 		{
 			b2BodyDef bodyDef = b2DefaultBodyDef();
 			bodyDef.type = (b2BodyType)bodyType;
+
 			WVec2 pos = entity->GetLocation();
 			bodyDef.position = { pos.x, pos.y};
+
+			float rotationRad = entity->GetRotation();
+			b2Rot rotation;
+			rotation.c = cos(rotationRad);
+			rotation.s = sin(rotationRad);
+			bodyDef.rotation = rotation;
+
 			bodyDef.fixedRotation = true;
 			bodyDef.userData = entity;
 			b2BodyId bodyId = b2CreateBody(worldId, &bodyDef);
@@ -1328,8 +1357,11 @@ namespace WE
 		physicsPImpl->UpdatePhysicsWorld(deltaTime);
 		for (size_t i = 0; i < instancedEntities.size(); ++i)
 		{
-			if(instancedEntities[i]->bodyId.isValid)
+			if (instancedEntities[i]->bodyId.isValid)
+			{
 				instancedEntities[i]->SetLocation(physicsPImpl->GetObjPos(instancedEntities[i]->bodyId));
+				instancedEntities[i]->SetRotation(physicsPImpl->GetObjRotationRad(instancedEntities[i]->bodyId));
+			}
 		}
 	}
 	void GameContext::SYSTEM_UpdateEventSystem()
@@ -1405,18 +1437,25 @@ namespace WE
 		else
 			std::cout << "Tried accessing invalid physics obj! \n";
 	}
+	void GameContext::PHYS_SetRotationOnPhysObj(WPhysBodyId id, float rotationRad)
+	{
+		if (id.isValid)
+			physicsPImpl->SetObjRotationRad(id, rotationRad);
+		else
+			std::cout << "Tried accessing invalid physics obj! \n";
+	}
 	void GameContext::PHYS_SetWorldGravity(WVec2 vec)
 	{
 		physicsPImpl->SetWorldGravity(vec);
 	}
 
-	void GameContext::RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer)
+	void GameContext::RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer_close)
 	{
-		RENDER_AddRenderComponent(entity, filePath, hTiles, vTiles, tileOffset, tileSpan, layer, entity->GetInitialSize());
+		RENDER_AddRenderComponent(entity, filePath, hTiles, vTiles, tileOffset, tileSpan, layer_close, entity->GetInitialSize());
 	}
-	void GameContext::RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer, WVec2 sizeOverride)
+	void GameContext::RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer_close, WVec2 sizeOverride)
 	{
-		windowPImpl->AddToRender(entity, filePath, hTiles, vTiles, tileOffset, tileSpan, sizeOverride.x, sizeOverride.y, layer);
+		windowPImpl->AddToRender(entity, filePath, hTiles, vTiles, tileOffset, tileSpan, sizeOverride.x, sizeOverride.y, layer_close);
 	}
 	void GameContext::RENDER_RemoveRenderComponent(Entity* entity)
 	{
@@ -1447,12 +1486,13 @@ namespace WE
 	void GameContext::GAME_StartCoroutine(Entity* caller, int ID, float duration)
 	{
 		CoroutineInstance* corInstance = new CoroutineInstance(caller, ID, duration);
-		On_InstantiateEntity(corInstance, WVec2(0), WVec2(0));
+		On_InstantiateEntity(corInstance, WVec2(0), 0.f, WVec2(0));
 	}
-	void GameContext::On_InstantiateEntity(Entity* entity, WVec2 pos, WVec2 size)
+	void GameContext::On_InstantiateEntity(Entity* entity, WVec2 pos, float rotation,  WVec2 size)
 	{
 		entity->gameContext = this;
 		entity->SetLocation(pos);
+		entity->SetRotation(rotation);
 		entity->initialSize = size;
 
 		instancedEntities.push_back(entity);

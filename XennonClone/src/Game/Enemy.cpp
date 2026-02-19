@@ -42,7 +42,7 @@ void Enemy::DealDamage(Entity* dealer, float damage)
 
 void Enemy::DieByPlayer()
 {
-	GetGameContext()->GAME_InstantiateEntity<Explosion>(GetLocation(), GetInitialSize());
+	GetGameContext()->GAME_InstantiateEntity<Explosion>(GetLocation(), 0.f, GetInitialSize());
 
 	//TODO give points
 

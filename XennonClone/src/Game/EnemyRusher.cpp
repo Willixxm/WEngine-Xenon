@@ -1,10 +1,5 @@
 #include "EnemyRusher.h"
 
-
-
-
-
-
 EnemyRusher::EnemyRusher()
 {
 	SetLocation(WVec2(GetLocation().x, 20));
@@ -24,8 +19,6 @@ EnemyRusher::EnemyRusher()
 	maxLifeTime = 15.f;
 }
 
-
-
 void EnemyRusher::Update(float deltaTime)
 {
 	Enemy::Update(deltaTime);
@@ -35,9 +28,3 @@ void EnemyRusher::Update(float deltaTime)
 	HandleEnemyLifeTime();
 
 }
-
-
-
-
-
-

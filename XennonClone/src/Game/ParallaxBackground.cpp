@@ -1,6 +1,6 @@
 #include "ParallaxBackground.h"
 #include "WEngine/GameContext.h"
-
+#include <cmath>
 
 using namespace WE;
 
@@ -8,98 +8,204 @@ void ParallaxBackground::Start()
 {
 	Entity::Start();
 
-	//GetGameContext()->RENDER_AddRenderComponent(this, filePath, 1, 1, 0, 1 * 1, layer, WE::WVec2(0));
-	//GetGameContext()->RENDER_SetAnimationParameters(this, false, 0.f);
-
-
 	CreateTiles();
-	
-	
-
 }
 
 void ParallaxBackground::Update(float deltaTime)
 {
 	Entity::Update(deltaTime);
 
-	for (Entity* tile : tileEntities)
+	for (Entity* tile : tileEntities_close)
 	{
-		WVec2 newPos = tile->GetLocation() + WVec2(0, -scrollVel * deltaTime);
+		WVec2 newPos = tile->GetLocation() + GetUpVector() * -scrollVel_close * deltaTime * 2.5f;
 
-		if (newPos.y < -30)
-			newPos.y = 30;
-
+		if (newPos.x < -64)
+		{
+			newPos.x = 64;
+		}
 		tile->SetLocation(newPos);
-
 	}
-
 }
-
-
-
 
 void ParallaxBackground::CreateTiles()
 {
-	//right side
-	{
-		Entity* tile = GetGameContext()->GAME_InstantiateEntity<Entity>(WVec2(4, 0) * tileSizeMult, WVec2(1) * tileSizeMult);
-		GetGameContext()->RENDER_AddRenderComponent(tile, filePath, 8, 32, 180, 1, layer);
-		tileEntities.push_back(tile);
-	}
+	std::vector<double> tileIDs;
+	// -1: end line
+	// 0: empty
+	// left to right, down to up
+	// int part -> start ID
+	// decimal part (.00) -> span
 
-	{
-		Entity* tile = GetGameContext()->GAME_InstantiateEntity<Entity>(WVec2(3, 0) * tileSizeMult, WVec2(1) * tileSizeMult);
-		GetGameContext()->RENDER_AddRenderComponent(tile, filePath, 8, 32, 179, 1, layer);
-		tileEntities.push_back(tile);
-	}
+	
+	tileIDs = { //facility left
+		327.04, -1,
+		273.04, -1,
+		241.04, -1,
+		160.05, -1,
+		144.05, -1,
+		128.07, -1,
+		112.07, -1,
+		96.07,  -1,
+		80.05,  -1,
+		64.06,  -1, 
+		48.06,	-1,
+		256.06, -1,
+		240.05, -1,
+		176.05, -1,
+		160.03, 118, -1,
+		176.03, 118, -1,
+		160.03, 118, -1,
+		176.03, 118, -1,
 
-	{
-		Entity* tile = GetGameContext()->GAME_InstantiateEntity<Entity>(WVec2(2, 0) * tileSizeMult, WVec2(1) * tileSizeMult);
-		GetGameContext()->RENDER_AddRenderComponent(tile, filePath, 8, 32, 178, 1, layer);
-		tileEntities.push_back(tile);
-	}
+		145.04, -1,
 
-	{
-		Entity* tile = GetGameContext()->GAME_InstantiateEntity<Entity>(WVec2(1, 0) * tileSizeMult, WVec2(1) * tileSizeMult);
-		GetGameContext()->RENDER_AddRenderComponent(tile, filePath, 8, 32, 177, 1, layer);
-		tileEntities.push_back(tile);
-	}
+		129.02, 224.04, -1,
+		113.02, 208.04, 78.02, 110.02, 64+7, -1,
+		97.02,  192.04, 62.02, 94.02,  48+7, -1,
+
+		80.05,  -1,
+		64.06,  -1,
+		48.06,	-1,
+		256.06, -1,
+		240.05, -1,
+		256.06, -1,
+		240.05, -1,
+		256.06, -1,
+		240.05, -1,
+		256.06, -1,
+		288.05, -1,
+		304+6.05, -1,		
+
+		-1,-1,-1,-1,-1,
+
+		327.04, -1,
+		273.04, -1,
+		241.04, -1,
+		160.05, -1,
+		144.05, -1,
+		
+		80.05,  -1,
+		64.06,  -1,
+		48.06,	-1,
+		256.06, -1,
+		240.05, -1,
+		176.05, -1,
+		160.03, 118, -1,
+		176.03, 118, -1,
+		160.03, 118, -1,
+		176.03, 118, -1,
+
+		145.04, 0.1, 150, 154.04, -1,
+		129.02, 224.04, 0.06, 228.04, 128 + 11.02, -1,
+		113.02, 208.04, 78.02, 110.02, 142.02, 208+4.04, 112 + 11.02,-1,
+		97.02,  192.04, 62.02, 94.02, 126.02 , 192+4.04, 96 + 11.02,-1,
+
+		80.05, 0.09, 149, 80+10.3, -1,
+		64.06,  -1,
+		48.06,	-1,
+		256.06, -1,
+		288.05, -1,
+		304 + 6.05, -1
+		
+	};
+	GenTileFromArray(tileIDs, -8, 0, layer_close, tileEntities_close);
+
+	tileIDs = { //facility right
+		0.06, 165.02, -1,
+		0.06, 262.02, -1,
+		0.05, 245.03, -1,
+		0.05, 262.03, -1,
+		0.04, 245.04, -1,
+		0.04, 262.04, -1,
+		0.03, 245.05, -1,
+		0.03, 165.05, -1,
+		0.01, 144 + 7.07, -1,
+		0.01, 128 + 7.07, -1,
+		0.01, 112 + 7.07, -1,
+		0.01, 96 + 7.07, -1,
+		0.01, 80 + 7.07, -1,
+		0.03, 64 + 9.05, -1,
+		0.03, 48 + 9.05, -1,
+		0.03, 181.05, -1,
+		0.04, 302.02, 178.02, -1,
+		0.04, 286.02, 224 + 8.02, -1,
+		0.04, 302.02, 208 + 8.02, -1,
+		0.04, 286.02, 192 + 8.02, -1,
+		320.11, -1,
+		304.11, -1
+	};
+	GenTileFromArray(tileIDs, 1, 3, layer_close, tileEntities_close);
+
+	tileIDs = { //second facility right
+		 -1,
+		 -1,
+		 -1,
+		 -1,
+		0.04, 245.04, -1,
+		0.04, 262.04, -1,
+		0.03, 245.05, -1,
+		0.03, 165.05, -1,
+		//0.01, 144 + 7.07, -1, //connection to left incoming pipe
+		//0.01, 128 + 7.07, -1,
+		//0.01, 112 + 7.07, -1,
+		//0.01, 96 + 7.07, -1,
+		//0.01, 80 + 7.07, -1,
+		-1,-1,-1, -1, -1,
+		0.03, 64 + 9.05, -1,
+		0.03, 48 + 9.05, -1,
+		0.03, 181.05, -1,
+		0.04, 302.02, 178.02, -1,
+		0.04, 286.02, 224 + 8.02, -1,
+		0.04, 302.02, 208 + 8.02, -1,
+		0.04, 286.02, 192 + 8.02, -1,
+		320.11, -1,
+		304.11, -1
+	};
+	GenTileFromArray(tileIDs, 3, 46, layer_close, tileEntities_close);
 
 
-	//left side
-	{
-		Entity* tile = GetGameContext()->GAME_InstantiateEntity<Entity>(WVec2(-3, 3) * tileSizeMult, WVec2(1) * tileSizeMult);
-		GetGameContext()->RENDER_AddRenderComponent(tile, filePath, 8, 32, 192, 1, layer);
-		tileEntities.push_back(tile);
-	}
-	{
-		Entity* tile = GetGameContext()->GAME_InstantiateEntity<Entity>(WVec2(-2, 3) * tileSizeMult, WVec2(1) * tileSizeMult);
-		GetGameContext()->RENDER_AddRenderComponent(tile, filePath, 8, 32, 193, 1, layer);
-		tileEntities.push_back(tile);
-	}
-	{
-		Entity* tile = GetGameContext()->GAME_InstantiateEntity<Entity>(WVec2(-1, 3) * tileSizeMult, WVec2(1) * tileSizeMult);
-		GetGameContext()->RENDER_AddRenderComponent(tile, filePath, 8, 32, 194, 1, layer);
-		tileEntities.push_back(tile);
-	}
 
-	//left side
+}
+
+void ParallaxBackground::GenTileFromArray(const std::vector<double>& tileIDs, int x_offset, int y_offset, int layer, std::vector<WE::Entity*>& entities)
+{
+	int hTileCount = 16;
+	int vTileCount = hTileCount * 4;
+
+	int tx = x_offset;
+	int ty = y_offset;
+
+	auto refPos = GetLocation();
+
+	// iterate over tileIDs
+	for (unsigned int i = 0; i < tileIDs.size(); ++i)
 	{
-		Entity* tile = GetGameContext()->GAME_InstantiateEntity<Entity>(WVec2(4, -8) * tileSizeMult, WVec2(1) * tileSizeMult);
-		GetGameContext()->RENDER_AddRenderComponent(tile, filePath, 8, 32, 194, 1, layer);
-		tileEntities.push_back(tile);
-	}
-	{
-		Entity* tile = GetGameContext()->GAME_InstantiateEntity<Entity>(WVec2(3, -8) * tileSizeMult, WVec2(1) * tileSizeMult);
-		GetGameContext()->RENDER_AddRenderComponent(tile, filePath, 8, 32, 193, 1, layer);
-		tileEntities.push_back(tile);
-	}
-	{
-		Entity* tile = GetGameContext()->GAME_InstantiateEntity<Entity>(WVec2(2, -8) * tileSizeMult, WVec2(1) * tileSizeMult);
-		GetGameContext()->RENDER_AddRenderComponent(tile, filePath, 8, 32, 192, 1, layer);
-		tileEntities.push_back(tile);
-	}
+		if (tileIDs[i] == -1)
+		{//new line
+			tx = x_offset;
+			++ty;
+			continue;
+		}
+
+		int start = tileIDs[i];
+		int span = (tileIDs[i] + 0.0001f) * 100.f;
+		span = span % 100;
+
+		if (span == 0)
+			span = 1;
+
+		for (unsigned int s = 0; s < span; ++s)
+		{
+			if (start != 0)
+			{
+				auto location = GetLocation() + GetRightVector() * GetInitialSize().x * tx + GetUpVector() * GetInitialSize().y * ty;
+				Entity* tile = GetGameContext()->GAME_InstantiateEntity<Entity>(location, GetRotation(), GetInitialSize());
+				GetGameContext()->RENDER_AddRenderComponent(tile, filePath, hTileCount, vTileCount, start + s, 1, layer);
+				entities.push_back(tile);
+			}
+			++tx;
+		}
 
 
-
+	}
 }

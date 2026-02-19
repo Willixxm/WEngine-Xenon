@@ -21,7 +21,7 @@ public:
 
 private:
 	float timeUntilNextShot = 0.f;
-	const float fireCoolDown = 0.2f;
+	const float fireCoolDown = 0.15f;
 	float moveSpeed = 12.f;
 
 	bool isInvincible = false;

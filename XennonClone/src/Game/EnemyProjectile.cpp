@@ -2,9 +2,7 @@
 #include "WEngine/GameContext.h"
 #include <cmath>
 
-
-
-
+#include "Explosion2.h"
 
 EnemyProjectile::EnemyProjectile()
 {
@@ -41,6 +39,13 @@ void EnemyProjectile::Update(float deltaTime)
 
 }
 
+
+void EnemyProjectile::DieByPlayer()
+{
+	GetGameContext()->GAME_InstantiateEntity<Explosion2>(GetLocation(), 0.f, GetInitialSize());
+
+	Destroy();
+}
 
 
 

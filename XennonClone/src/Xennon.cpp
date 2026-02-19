@@ -8,10 +8,10 @@ class Xennon : public WE::Game
 public:
 	Xennon()
 	{
-		windowWidth = 500;
-		windowHeight = windowWidth * 4/3;
+		windowWidth = 1600;
+		windowHeight = windowWidth / ((float)16/9);
 		gameName = "Xennon Clone";
-		renderEngine = WRenderEngine::SDL;
+		renderEngine = WRenderEngine::OpenGL;
 	}
 
 	~Xennon()
@@ -24,7 +24,7 @@ public:
 	{
 		Game::Start();
 		
-		XennonLevel* level = gameContext->GAME_InstantiateEntity<XennonLevel>(WE::WVec2(0, 0), WE::WVec2(0, 0));	
+		XennonLevel* level = gameContext->GAME_InstantiateEntity<XennonLevel>(WE::WVec2(0, 0), 0.f, WE::WVec2(0, 0));	
 	}
 };
 

@@ -34,6 +34,7 @@ namespace WE
 		WPhysBodyId bodyId;
 	private:
 		WVec2 position = WVec2(0.f);
+		float rotationRad = 0.f;
 		WVec2 initialSize = WVec2(0.f);
 		int renderLayer = 0; 
 
@@ -42,6 +43,12 @@ namespace WE
 	public:
 		WVec2 GetLocation();
 		void SetLocation(WVec2 pos);
+
+		float GetRotation();
+		void SetRotation(float newRotationRad);
+
+		WVec2 GetUpVector();
+		WVec2 GetRightVector();
 
 		WVec2 GetInitialSize() const { return initialSize; }
 

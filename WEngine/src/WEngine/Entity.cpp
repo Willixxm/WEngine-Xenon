@@ -44,8 +44,29 @@ namespace WE
 		if (bodyId.isValid)
 			gameContext->PHYS_SetLocationOnPhysObj(bodyId, pos);
 		
-
 		position = pos;
+	}
+
+	float Entity::GetRotation()
+	{
+		return rotationRad;
+	}
+
+	void Entity::SetRotation(float newRotationRad)
+	{
+		if (bodyId.isValid)
+			gameContext->PHYS_SetRotationOnPhysObj(bodyId, newRotationRad);
+
+		rotationRad = newRotationRad;
+	}
+
+	WVec2 Entity::GetUpVector()
+	{
+		return WE::WVec2(cos(GetRotation() + 3.14159265 / 2), sin(GetRotation() + 3.14159265 / 2));
+	}
+	WVec2 Entity::GetRightVector()
+	{
+		return WE::WVec2(cos(GetRotation()), sin(GetRotation()));
 	}
 
 	void Entity::On_CollisionBegin(Entity* other, WVec2 point) {}

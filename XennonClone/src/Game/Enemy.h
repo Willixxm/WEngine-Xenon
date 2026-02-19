@@ -19,7 +19,7 @@ public:
 	void On_SensorBeginOverlap(Entity* other) override;
 
 protected:
-	void DieByPlayer();
+	virtual void DieByPlayer();
 
 	virtual void HandleShoot(float deltaTime);
 	virtual void Fire();

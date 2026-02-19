@@ -15,7 +15,4 @@ public:
 protected:
 	std::string filePath = "graphics/galaxy2.bmp";
 	int layer = -100;
-	float scrollVel = -5;
-
-
 };

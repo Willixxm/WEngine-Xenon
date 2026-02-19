@@ -17,17 +17,16 @@ void SpaceShip::Start()
 	GetGameContext()->PHYS_AddPhysComponentToEntity(this, WE::WBodyType::dynamicBody, GetInitialSize()*0.75f, WCollisionLayer::Layer1, WCollisionLayer::Layer3, false, 1.f);
 	GetGameContext()->RENDER_AddRenderComponent(this, "graphics/Ship2.bmp", 7, 3, 0, 7, 0);
 	GetGameContext()->RENDER_SetAnimationParameters(this, false, 2.f);
-
 }
 
 void SpaceShip::Update(float deltaTime) 
 {
 	Pawn::Update(deltaTime);
 
-	
 	HandleMovement(deltaTime);
 	HandleShoot(deltaTime);
 
+	//SetRotation(GetTimeAlive() * 6.28f * 0.5f);
 }
 
 
@@ -69,16 +68,13 @@ void SpaceShip::HandleMovement(float deltaTime)
 
 	Move(inputVec * moveSpeed);
 
-	GetGameContext()->RENDER_SetManualAnimationState(this, inputVec.x / 2 + 0.5f);
+	GetGameContext()->RENDER_SetManualAnimationState(this, -inputVec.y / 2 + 0.5f);
 	
 }
 
 void SpaceShip::PrimaryFire()
 {
-	GetGameContext()->GAME_InstantiateEntity<PlayerProjectile>(GetLocation() + WE::WVec2(0, 1), WE::WVec2(2));
-
-
-
+	auto projectile = GetGameContext()->GAME_InstantiateEntity<PlayerProjectile>(GetLocation() + WE::WVec2(0, 1), GetRotation(), WE::WVec2(2));
 }
 
 void SpaceShip::DealDamage(Entity* dealer, float damage)
@@ -89,7 +85,7 @@ void SpaceShip::DealDamage(Entity* dealer, float damage)
 		GetGameContext()->RENDER_SetAnimationTileParameters(this, 7, 7);
 		isInvincible = true;
 
-		GetGameContext()->GAME_InstantiateEntity<Explosion>(GetLocation(), GetInitialSize());
+		GetGameContext()->GAME_InstantiateEntity<Explosion>(GetLocation(), 0.f, GetInitialSize());
 	}
 	
 

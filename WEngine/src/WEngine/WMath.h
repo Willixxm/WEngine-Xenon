@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core.h"
-
+#include <cmath>
 
 namespace WE
 {
@@ -26,6 +26,10 @@ namespace WE
 			return *this;
 		}
 
+		float length()
+		{
+			return sqrt(pow(x, 2) + pow(y, 2));
+		}
 
 	public:
 		float x = 0;
@@ -48,5 +52,9 @@ namespace WE
 		return WVec2(vec1.x + vec2.x, vec1.y + vec2.y);
 	}
 
-
+	inline WVec2 operator-(const WVec2& vec1, const WVec2& vec2)
+	{
+		return WVec2(vec1.x - vec2.x, vec1.y - vec2.y);
+	}
+	
 }
