@@ -4,6 +4,7 @@
 #include "WEngine/GameContext.h"
 
 #include "SpaceShip.h"
+#include "TextRenderer.h"
 #include "BackGround.h"
 #include "ParallaxBackground.h"
 #include "Enemy.h"
@@ -24,9 +25,13 @@ public:
 
 		GetGameContext()->MEMORY_SetAutoUnloadAssetIfUnused(false);
 
-		GetGameContext()->RENDER_SetOrthoCameraSize(34.f * 2);
+		GetGameContext()->RENDER_SetOrthoCameraSize(34.f);
 
 		player = GetGameContext()->GAME_InstantiateEntity<SpaceShip>(WE::WVec2(-20, 0), 2*3.14159265 * -1/4, WE::WVec2(4));
+		scoreText = GetGameContext()->GAME_InstantiateEntity<TextRenderer>(WE::WVec2((16.f/9)* -34.f, -34.f), 0.f, WE::WVec2(1.0f));
+
+		scoreText->SetText("score");
+
 
 		BackGround* background = GetGameContext()->GAME_InstantiateEntity<BackGround>(WE::WVec2(0, 0), 0.f, WE::WVec2(0));
 		
@@ -41,7 +46,7 @@ public:
 	Entity* GetPlayer() const { return player; }
 private:
 	Entity* player = nullptr;
-
+	TextRenderer* scoreText = nullptr;
 
 
 
@@ -87,6 +92,7 @@ private:
 		enemy->normalizedMoveVector *= sign;
 		
 	}
+
 	void Spawn_DroneSwarm(int count, float spawnRatePerSecond)
 	{
 
@@ -128,14 +134,46 @@ public:
 			}
 			else // 
 			{
-				Spawn_Loner();
+				Spawn_DroneSwarm(5, 1.5f);
 			}
 			
 
 		}
 
+	}
+
+	void OnCoroutineUpdate(int ID, float duration) override
+	{
+		switch (ID)
+		{
+		case CoroutineID::DroneSpawning:
+			//if ((int)(duration * 10) % 2 == 0)
+				//GetGameContext()->RENDER_SetAnimationTileParameters(this, 0, 7);
+			//else
+				//GetGameContext()->RENDER_SetAnimationTileParameters(this, 7, 7);
+			break;
+
+		}
 
 	}
+
+	void OnCoroutineEnd(int ID) override
+	{
+		switch (ID)
+		{
+		case CoroutineID::DroneSpawning:
+			
+			break;
+
+		}
+
+	}
+
+private:
+	enum CoroutineID : int
+	{
+		DroneSpawning = 0
+	};
 
 
 };
