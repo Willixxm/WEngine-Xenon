@@ -16,7 +16,7 @@ public:
 	void On_EnterOtherSensor(Entity* otherSensor) override;
 
 private:
-	float lifeTime = 2.f;
+	float lifeTime = 3.f;
 	float projectileSpeed = 30.f;
 	float projectileDmg = 25.f;
 

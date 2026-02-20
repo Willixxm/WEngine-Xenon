@@ -77,8 +77,12 @@ namespace WE
 			if (state_0_to_1 >= 1)
 				state_0_to_1 -= 0.001f;
 
-			animationProgress = state_0_to_1 * (tileSpan);
+			float newState = state_0_to_1 * (tileSpan);
 
+			if (newState == animationProgress && !tileParamsChangedSinceLastUpdate)
+				return;
+
+			animationProgress = newState;
 			CalcUV();
 		}
 
@@ -97,6 +101,8 @@ namespace WE
 
 		WVec2 UVTileSize;
 		WVec2 UVTileOffset;
+
+		bool tileParamsChangedSinceLastUpdate = false;
 	};
 
 	struct RenderGLEntity2D
@@ -107,8 +113,8 @@ namespace WE
 
 		TextureRectParams params;
 		
-		int entityWidth = 100;
-		int entityHeight = 100;
+		float entityWidth = 1.f;
+		float entityHeight = 1.f;
 
 		bool autoAnimate = true;
 		float manualAnimationState = 0.5f;
@@ -191,8 +197,12 @@ namespace WE
 			if (state_0_to_1 >= 1) 
 				state_0_to_1 -= 0.0001f;
 
-			animationProgress = state_0_to_1 * (tileSpan);
+			float newState = state_0_to_1 * (tileSpan);
 
+			if (newState == animationProgress && !tileParamsChangedSinceLastUpdate)
+				return;
+			
+			animationProgress = newState;
 			CalcRect();
 		}
 
@@ -213,6 +223,8 @@ namespace WE
 		float animationFps = 10.f;
 
 		SDL_FRect surfaceRect = SDL_FRect();
+
+		bool tileParamsChangedSinceLastUpdate = false;
 	};
 
 	struct RenderSDLEntity2D
@@ -491,7 +503,6 @@ namespace WE
 
 					renderSDLEntities[i].autoAnimate = autoAnimate;
 					renderSDLEntities[i].params.animationFps = animationFps;
-
 				}
 			}
 			else
@@ -504,7 +515,6 @@ namespace WE
 
 					renderGLEntities[i].autoAnimate = autoAnimate;
 					renderGLEntities[i].params.animationFps = animationFps;
-
 				}
 			}
 		}
@@ -520,7 +530,7 @@ namespace WE
 
 					renderSDLEntities[i].params.tileOffset = tileOffset;
 					renderSDLEntities[i].params.tileSpan = tileSpan;
-
+					renderSDLEntities[i].params.tileParamsChangedSinceLastUpdate = true;
 				}
 			}
 			else
@@ -533,7 +543,7 @@ namespace WE
 
 					renderGLEntities[i].params.tileOffset = tileOffset;
 					renderGLEntities[i].params.tileSpan = tileSpan;
-
+					renderGLEntities[i].params.tileParamsChangedSinceLastUpdate = true;
 				}
 			}
 		}
@@ -819,6 +829,14 @@ namespace WE
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, baseEbo);
 			shader.Use();
 
+			glm::mat4 identityMat4 = glm::mat4(1.0f);
+
+			glm::mat4 model;
+			glm::mat4 modelScale;
+			glm::mat4 rotation;
+			glm::mat4 position;
+			glm::mat4 screenScale;
+
 			for (size_t i = 0; i < renderGLEntities.size(); ++i)
 			{
 				if (renderGLEntities[i].entity == nullptr)
@@ -835,21 +853,28 @@ namespace WE
 					renderGLEntities[i].params.SetAnimationState(renderGLEntities[i].manualAnimationState);
 
 
-				glm::mat4 model = glm::mat4(1.f);
-
-				if (renderGLEntities[i].entityHeight || renderGLEntities[i].entityWidth) //entities with 0 height and width are to be rendered to 'fit' the screen (such as the background)
+				if (renderGLEntities[i].entityHeight || renderGLEntities[i].entityWidth) 
 				{
-					// position
-					model[3][0] = (renderGLEntities[i].entity->position.x - cameraPosition.x) * 2 * ((float)windowHeight / (float)windowWidth) / orthoCameraSize;
-					model[3][1] = (renderGLEntities[i].entity->position.y - cameraPosition.y) * 2 / orthoCameraSize;
-					//model[3][2] = renderGLEntities[i].entity->renderLayer * -0.001;
+					modelScale = identityMat4;
+					modelScale[0] *= renderGLEntities[i].entityWidth;
+					modelScale[1] *= renderGLEntities[i].entityHeight / renderGLEntities[i].params.tileAspectRatio;
 
-					// scale
-					model[0] *= renderGLEntities[i].entityWidth * ((float)windowHeight / (float)windowWidth) / orthoCameraSize;
-					model[1] *= (renderGLEntities[i].entityHeight / renderGLEntities[i].params.tileAspectRatio) / orthoCameraSize;
+					rotation = glm::rotate(identityMat4, renderGLEntities[i].entity->rotationRad, glm::vec3(0.f, 0.f, 1.f));
 
-					model = glm::rotate(model, renderGLEntities[i].entity->rotationRad, glm::vec3(0.f, 0.f, 1.f));
-				}				
+					position = identityMat4;
+					position[3][0] = (renderGLEntities[i].entity->position.x - cameraPosition.x) * 2.0; //multiply by 2 to occupy full screen (-1 to 1)
+					position[3][1] = (renderGLEntities[i].entity->position.y - cameraPosition.y) * 2.0;
+
+					screenScale = identityMat4;
+					screenScale[0] *= ((float)windowHeight / (float)windowWidth) / orthoCameraSize;
+					screenScale[1] *= 1 / orthoCameraSize;
+
+					model = screenScale * position * rotation * modelScale;
+				}
+				else //entities with 0 height and width are to be rendered to 'fit' the screen (such as the background)
+				{
+					model = identityMat4;
+				}
 
 				shader.setMat4("model", model);
 				shader.set2Float("UVTileSize", renderGLEntities[i].params.UVTileSize.x, renderGLEntities[i].params.UVTileSize.y);
@@ -1240,7 +1265,8 @@ namespace WE
 		{
 			b2Rot rotation = b2Body_GetRotation(GetB2IdFromWId(id));
 
-			return acos(rotation.c) * (signbit(rotation.s) ? -1 : 1);
+			return atan2(rotation.s, rotation.c);
+			//return acos(rotation.c) * (signbit(rotation.s) ? -1 : 1);
 		}
 
 		void SetObjPos(WPhysBodyId id, WVec2 pos)

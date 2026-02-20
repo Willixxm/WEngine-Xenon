@@ -4,9 +4,11 @@
 #include "WEngine/WMath.h"
 #include "WEngine/Pawn.h"
 #include <iostream>
+#include <cmath>
 
 #include "PlayerProjectile.h"
 #include "Explosion.h"
+#include "TextRenderer.h"
 
 using namespace WE;
 
@@ -17,6 +19,9 @@ void SpaceShip::Start()
 	GetGameContext()->PHYS_AddPhysComponentToEntity(this, WE::WBodyType::dynamicBody, GetInitialSize()*0.75f, WCollisionLayer::Layer1, WCollisionLayer::Layer3, false, 1.f);
 	GetGameContext()->RENDER_AddRenderComponent(this, "graphics/Ship2.bmp", 7, 3, 0, 7, 0);
 	GetGameContext()->RENDER_SetAnimationParameters(this, false, 2.f);
+
+	if (textRendererTest)
+		inputVectorText = GetGameContext()->GAME_InstantiateEntity<TextRenderer>(GetLocation() + WVec2(0, 2.f), 0.f, WVec2(0.5f));
 }
 
 void SpaceShip::Update(float deltaTime) 
@@ -26,7 +31,7 @@ void SpaceShip::Update(float deltaTime)
 	HandleMovement(deltaTime);
 	HandleShoot(deltaTime);
 
-	//SetRotation(GetTimeAlive() * 6.28f * 0.5f);
+	//std::cout << GetLocation().x << " | " << GetLocation().y << '\n';
 }
 
 
@@ -69,12 +74,32 @@ void SpaceShip::HandleMovement(float deltaTime)
 	Move(inputVec * moveSpeed);
 
 	GetGameContext()->RENDER_SetManualAnimationState(this, -inputVec.y / 2 + 0.5f);
-	
+
+	if (inputVectorText)
+	{
+		std::string inputBar = "O";
+		for (int i = 0; i < inputVec.length() * 5; ++i)
+			inputBar += ":";
+		inputBar += ">";
+		inputVectorText->SetLocation(GetLocation());
+		inputVectorText->SetRotation(atan2(inputVec.y, inputVec.x));
+		inputVectorText->SetText(inputBar);
+	}
 }
 
 void SpaceShip::PrimaryFire()
 {
-	auto projectile = GetGameContext()->GAME_InstantiateEntity<PlayerProjectile>(GetLocation() + WE::WVec2(0, 1), GetRotation(), WE::WVec2(2));
+	auto muzzleLocation = GetLocation() + GetUpVector() * 1.5f;
+	auto projectile = GetGameContext()->GAME_InstantiateEntity<PlayerProjectile>(muzzleLocation, GetRotation(), WE::WVec2(2));
+
+	if (textRendererTest)
+	{
+		auto bangText = GetGameContext()->GAME_InstantiateEntity<TextRenderer>(muzzleLocation + WVec2(0, 1), 0, WVec2(0.5));
+		bangText->SetText("Pew!");
+		bangText->DestroyWithFloat(WVec2(0, 2), 0.5);
+	}
+	
+
 }
 
 void SpaceShip::DealDamage(Entity* dealer, float damage)
@@ -88,7 +113,6 @@ void SpaceShip::DealDamage(Entity* dealer, float damage)
 		GetGameContext()->GAME_InstantiateEntity<Explosion>(GetLocation(), 0.f, GetInitialSize());
 	}
 	
-
 }
 
 

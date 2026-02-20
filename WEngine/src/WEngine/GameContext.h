@@ -160,7 +160,7 @@ namespace WE
 
 		void RENDER_RemoveRenderComponent(Entity* entity);
 
-		void RENDER_SetAnimationParameters(Entity* entity, bool autoAnimate, float animationFps);
+		void RENDER_SetAnimationParameters(Entity* entity, bool autoAnimate, float animationFps = 8.f);
 		void RENDER_SetAnimationTileParameters(Entity* entity, int tileOffset, int tileSpan);
 		void RENDER_SetManualAnimationState(Entity* entity, float state_0to1);
 

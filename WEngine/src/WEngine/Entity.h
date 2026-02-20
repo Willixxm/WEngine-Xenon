@@ -42,10 +42,10 @@ namespace WE
 
 	public:
 		WVec2 GetLocation();
-		void SetLocation(WVec2 pos);
+		virtual void SetLocation(WVec2 pos);
 
 		float GetRotation();
-		void SetRotation(float newRotationRad);
+		virtual void SetRotation(float newRotationRad);
 
 		WVec2 GetUpVector();
 		WVec2 GetRightVector();
@@ -69,7 +69,7 @@ namespace WE
 		virtual void OnCoroutineEnd(int CoroutineID) {}
 
 
-		void Destroy();
+		virtual void Destroy();
 
 	public:
 

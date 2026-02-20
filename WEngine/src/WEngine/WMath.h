@@ -31,6 +31,15 @@ namespace WE
 			return sqrt(pow(x, 2) + pow(y, 2));
 		}
 
+		WVec2 normalized()
+		{
+			if (x != 0 || y != 0)
+			{
+				float len = length();
+				return WVec2(x * (1 / len), y * (1 / len));
+			}
+		}
+
 	public:
 		float x = 0;
 		float y = 0;

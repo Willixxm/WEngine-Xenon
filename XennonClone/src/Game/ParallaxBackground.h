@@ -25,8 +25,8 @@ protected:
 	float scrollVel_close = 4.f;
 	std::vector<Entity*> tileEntities_close;
 
-	int layer_far = -20;
-	float scrollVel_far = 2.f;
+	int layer_far = -40;
+	float scrollVel_far = 1.5f;
 	std::vector<Entity*> tileEntities_far;
 
 };

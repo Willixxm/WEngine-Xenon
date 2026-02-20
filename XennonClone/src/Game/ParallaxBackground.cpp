@@ -15,13 +15,26 @@ void ParallaxBackground::Update(float deltaTime)
 {
 	Entity::Update(deltaTime);
 
+	auto UpVec = GetUpVector();
+
 	for (Entity* tile : tileEntities_close)
 	{
-		WVec2 newPos = tile->GetLocation() + GetUpVector() * -scrollVel_close * deltaTime * 2.5f;
+		WVec2 newPos = tile->GetLocation() + UpVec * -scrollVel_close * deltaTime;
 
 		if (newPos.x < -64)
 		{
-			newPos.x = 64;
+			newPos.x += 2 * 64;
+		}
+		tile->SetLocation(newPos);
+	}
+
+	for (Entity* tile : tileEntities_far)
+	{
+		WVec2 newPos = tile->GetLocation() + UpVec * -scrollVel_far * deltaTime;
+
+		if (newPos.x < -64)
+		{
+			newPos.x += 2*64;
 		}
 		tile->SetLocation(newPos);
 	}
@@ -36,7 +49,12 @@ void ParallaxBackground::CreateTiles()
 	// int part -> start ID
 	// decimal part (.00) -> span
 
-	
+	// =================
+	// == close layer ==
+	// =================
+	int Xoffset = 0;
+	int Yoffset = 0;
+
 	tileIDs = { //facility left
 		327.04, -1,
 		273.04, -1,
@@ -108,8 +126,8 @@ void ParallaxBackground::CreateTiles()
 		304 + 6.05, -1
 		
 	};
-	GenTileFromArray(tileIDs, -8, 0, layer_close, tileEntities_close);
-
+	GenTileFromArray(tileIDs, Xoffset - 8, Yoffset + 0, layer_close, tileEntities_close);
+ 
 	tileIDs = { //facility right
 		0.06, 165.02, -1,
 		0.06, 262.02, -1,
@@ -132,9 +150,28 @@ void ParallaxBackground::CreateTiles()
 		0.04, 302.02, 208 + 8.02, -1,
 		0.04, 286.02, 192 + 8.02, -1,
 		320.11, -1,
-		304.11, -1
+		304.11, -1,
+
+		//0.05, 496.05, -1,
+		//0.05, 480.05, -1,
+		0.05, 464.05, -1,
+		0.05, 448.05, -1,
+		0.05, 432.05, -1,
+		0.05, 416.05, -1,
+		0.05, 400.05, -1,
+
+		//0.06, 496.05, -1,
+		0.06, 480.05, -1,
+		0.06, 464.05, -1,
+		0.06, 448.05, -1,
+		0.06, 432.05, -1,
+		0.06, 416.05, -1,
+		0.06, 400.05, -1,
+
+
+
 	};
-	GenTileFromArray(tileIDs, 1, 3, layer_close, tileEntities_close);
+	GenTileFromArray(tileIDs, Xoffset + 1, Yoffset + 3, layer_close, tileEntities_close);
 
 	tileIDs = { //second facility right
 		 -1,
@@ -161,9 +198,121 @@ void ParallaxBackground::CreateTiles()
 		320.11, -1,
 		304.11, -1
 	};
-	GenTileFromArray(tileIDs, 3, 46, layer_close, tileEntities_close);
+	GenTileFromArray(tileIDs, Xoffset +  3, Yoffset + 46, layer_close, tileEntities_close);
 
+	
+	// =================
+	// === far layer ===
+	// =================
+	Xoffset = 0;
+	Yoffset = 0;
 
+	tileIDs = {
+		//691.06, 752.02, 756.04, -1,
+		//691.06, 752.02, 756.04, -1,
+		0.03, 784 + 8.06, -1,
+
+		0.02, 784.06, 0.03, 784.06, -1,
+		0.02, 768.06, 0.03, 768.06, -1,
+		-1,
+		0.04, 808.06, -1, 
+		0.04, 792.06, -1,
+		-1,
+
+		0.05, 0.03, 784 + 8.06, -1, 
+		-1,
+		0.02, 0.02, 784.06, 0.03, 784.06, -1,
+		0.02, 0.02, 768.06, 0.03, 768.06, -1,
+
+		0.06, 808.06, -1,
+		0.06, 792.06, -1,
+		-1,-1,-1,
+		
+		0.01, 0.03, 784 + 8.06, -1,
+		0.01, 0.02, 784.06, 0.03, 784.06, -1,
+		0.01, 0.02, 768.06, 0.03, 768.06, -1,
+		0.01, 808.06, -1,
+		0.01, 792.06, -1,
+		-1,-1,
+		
+		0.05, 0.03, 784 + 8.06, -1,
+		0.05, 0.02, 784.06, 0.03, 784.06, -1,
+		0.05, 0.02, 768.06, 0.03, 768.06, -1,
+		0.05, 808.06, -1,
+		0.05, 792.06, -1,
+		-1,
+
+		// ------
+
+		0.03, 784 + 8.06, -1,
+
+		0.02, 784.06, 0.03, 784.06, -1,
+		0.02, 768.06, 0.03, 768.06, -1,
+		-1,
+		0.04, 808.06, -1,
+		0.04, 792.06, -1,
+		-1,
+
+		0.05, 0.03, 784 + 8.06, -1,
+		-1,
+		0.02, 0.02, 784.06, 0.03, 784.06, -1,
+		0.02, 0.02, 768.06, 0.03, 768.06, -1,
+
+		0.06, 808.06, -1,
+		0.06, 792.06, -1,
+		-1,-1,-1,
+
+		0.01, 0.03, 784 + 8.06, -1,
+		0.01, 0.02, 784.06, 0.03, 784.06, -1,
+		0.01, 0.02, 768.06, 0.03, 768.06, -1,
+		0.01, 808.06, -1,
+		0.01, 792.06, -1,
+		-1,-1,
+
+		0.05, 0.03, 784 + 8.06, -1,
+		0.05, 0.02, 784.06, 0.03, 784.06, -1,
+		0.05, 0.02, 768.06, 0.03, 768.06, -1,
+		0.05, 808.06, -1,
+		0.05, 792.06, -1,
+		-1,
+
+		// ---
+
+		0.03, 784 + 8.06, -1,
+
+		0.02, 784.06, 0.03, 784.06, -1,
+		0.02, 768.06, 0.03, 768.06, -1,
+		-1,
+		0.04, 808.06, -1,
+		0.04, 792.06, -1,
+		-1,
+
+		0.05, 0.03, 784 + 8.06, -1,
+		-1,
+		0.02, 0.02, 784.06, 0.03, 784.06, -1,
+		0.02, 0.02, 768.06, 0.03, 768.06, -1,
+
+		0.06, 808.06, -1,
+		0.06, 792.06, -1,
+		-1,-1,-1,
+
+		0.01, 0.03, 784 + 8.06, -1,
+		0.01, 0.02, 784.06, 0.03, 784.06, -1,
+		0.01, 0.02, 768.06, 0.03, 768.06, -1,
+		0.01, 808.06, -1,
+		0.01, 792.06, -1,
+		-1,-1,
+
+		0.05, 0.03, 784 + 8.06, -1,
+		0.05, 0.02, 784.06, 0.03, 784.06, -1,
+		0.05, 0.02, 768.06, 0.03, 768.06, -1,
+		0.05, 808.06, -1,
+		0.05, 792.06, -1,
+		-1,
+
+		-1,
+	};
+	GenTileFromArray(tileIDs, Xoffset - 10, Yoffset -20, layer_far, tileEntities_far);
 
 }
 
@@ -201,6 +350,7 @@ void ParallaxBackground::GenTileFromArray(const std::vector<double>& tileIDs, in
 				auto location = GetLocation() + GetRightVector() * GetInitialSize().x * tx + GetUpVector() * GetInitialSize().y * ty;
 				Entity* tile = GetGameContext()->GAME_InstantiateEntity<Entity>(location, GetRotation(), GetInitialSize());
 				GetGameContext()->RENDER_AddRenderComponent(tile, filePath, hTileCount, vTileCount, start + s, 1, layer);
+				GetGameContext()->RENDER_SetAnimationParameters(tile, false);
 				entities.push_back(tile);
 			}
 			++tx;

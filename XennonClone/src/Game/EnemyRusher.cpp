@@ -15,6 +15,7 @@ EnemyRusher::EnemyRusher()
 
 	lifePoints = 50.f;
 	moveSpeed = 5.f;
+	normalizedMoveVector = WVec2(0, -1);
 
 	maxLifeTime = 15.f;
 }
@@ -23,8 +24,8 @@ void EnemyRusher::Update(float deltaTime)
 {
 	Enemy::Update(deltaTime);
 
-	Move(WVec2(0, -moveSpeed));
+	Move(normalizedMoveVector * moveSpeed);
 
 	HandleEnemyLifeTime();
-
+	
 }

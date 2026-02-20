@@ -2,9 +2,12 @@
 
 #include "WEngine/Pawn.h"
 #include "WEngine/GameContext.h"
+//#include "XennonLevel.h"
 #include <string>
 
 using namespace WE;
+
+class XennonLevel;
 
 class Enemy : public Pawn
 {
@@ -18,6 +21,12 @@ public:
 
 	void On_SensorBeginOverlap(Entity* other) override;
 
+	void SetLevelInstance(XennonLevel* instance) { levelInstance = instance; }
+	XennonLevel* GetLevelInstance() const { return levelInstance; }
+
+private:
+	XennonLevel* levelInstance = nullptr;
+
 protected:
 	virtual void DieByPlayer();
 
@@ -25,6 +34,7 @@ protected:
 	virtual void Fire();
 
 	void HandleEnemyLifeTime();
+
 
 protected:
 	std::string filePath = "graphics/font16x16.bmp";
@@ -40,12 +50,16 @@ protected:
 
 	float lifePoints = 100.f;
 	float bodyDamage = 50.f;
-	float moveSpeed = 2.f;
 
+public:
+	float moveSpeed = 2.f;
+	WVec2 normalizedMoveVector = WVec2(-1, 0);
+	
+protected:
 	float shotCooldownTime = 1.5f;
 	bool canShoot = true;
 
-	float maxLifeTime = 25.0f;
+	float maxLifeTime = 45.0f;
 
 	uint32_t collisionLayer = WCollisionLayer::Layer3;
 	uint32_t collidesWith = WCollisionLayer::Layer1 | WCollisionLayer::Layer2;
