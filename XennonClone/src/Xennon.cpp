@@ -9,7 +9,7 @@ public:
 	Xennon()
 	{
 		windowWidth = 1600;
-		windowHeight = windowWidth / ((float)16/9);
+		windowHeight = windowWidth / ((float)16/7);
 		gameName = "Xennon Clone";
 		renderEngine = WRenderEngine::OpenGL;
 	}

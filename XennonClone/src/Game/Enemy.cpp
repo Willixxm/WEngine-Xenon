@@ -17,7 +17,6 @@ void Enemy::Start()
 	GetGameContext()->PHYS_AddPhysComponentToEntity(this, WE::WBodyType::kinematicBody, GetInitialSize() * hitboxSizeMult, collisionLayer, collidesWith, isSensor, 1.f);
 	GetGameContext()->RENDER_AddRenderComponent(this, filePath, hTiles, vTiles, tileOffset, tileSpan, renderLayer);
 	GetGameContext()->RENDER_SetAnimationParameters(this, true, animationFPS);
-
 }
 
 
@@ -25,6 +24,8 @@ void Enemy::Update(float deltaTime)
 {
 	Pawn::Update(deltaTime);
 
+	HandleShoot(deltaTime);
+	HandleEnemyLifeTime();
 }
 
 
@@ -36,15 +37,20 @@ void Enemy::DealDamage(Entity* dealer, float damage)
 
 	if (lifePoints <= 0)
 	{
+		lifePoints = 0;
 		DieByPlayer();
 	}
 }
 
 void Enemy::DieByPlayer()
 {
+	if (isInvincible)
+		return;
+
 	GetGameContext()->GAME_InstantiateEntity<Explosion>(GetLocation(), 0.f, GetInitialSize());
 
 	//TODO give points
+	//spawn xp text prompt
 
 	Destroy();
 }

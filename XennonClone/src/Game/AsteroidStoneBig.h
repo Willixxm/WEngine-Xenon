@@ -2,10 +2,10 @@
 
 #include "Enemy.h"
 
-class EnemyRusher : public Enemy
+class AsteroidStoneBig : public Enemy
 {
 public:
-	EnemyRusher();
+	AsteroidStoneBig();
 
 	void Update(float deltaTime) override;
 };

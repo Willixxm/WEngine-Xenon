@@ -11,8 +11,6 @@
 EnemyLoner::EnemyLoner()
 {
 	
-	
-	//SetLocation(WVec2(25 * positionOffsetSign, GetLocation().y));
 
 	filePath = "graphics/LonerA.bmp";
 	hitboxSizeMult = 0.6f;
@@ -24,10 +22,13 @@ EnemyLoner::EnemyLoner()
 	animationFPS = 5.f;
 
 	lifePoints = 75.f;
+	maxLifeTime = 25.0f;
 
-
+	canShoot = true;
 	shotCooldownTime = 2.0f;
 	projectileSpeed = 10.f;
+
+	timeUntilNextShot = (rand() % 100) * (1/100.f) * shotCooldownTime;
 
 	moveSpeed = 6.f;
 	normalizedMoveVector = WVec2(-1, 0);
@@ -39,8 +40,6 @@ void EnemyLoner::Start()
 {
 	Enemy::Start();
 
-	//float positionOffsetSign = (int)(GetLocation().x > 0) - (int)(0 > GetLocation().x);
-	//moveSpeed = 2.5f * -positionOffsetSign;
 
 }
 
@@ -48,13 +47,7 @@ void EnemyLoner::Update(float deltaTime)
 {
 	Enemy::Update(deltaTime);
 
-	Move(normalizedMoveVector * moveSpeed);
-
-	HandleShoot(deltaTime);
-
-	HandleEnemyLifeTime();
-
-	
+	Move(normalizedMoveVector * moveSpeed);	
 }
 
 

@@ -1,11 +1,9 @@
 #pragma once
-
 #include "Enemy.h"
-
-class EnemyRusher : public Enemy
+class AsteroidStoneSmall : public Enemy
 {
 public:
-	EnemyRusher();
+	AsteroidStoneSmall();
 
 	void Update(float deltaTime) override;
 };
