@@ -11,16 +11,20 @@ EnemyRusher::EnemyRusher()
 	renderLayer = 0;
 	animationFPS = 15.f;
 
+	explosionSizeMult = 1.0f;
+
 	lifePoints = 50.f;
 	moveSpeed = 5.f;
-	normalizedMoveVector = WVec2(0, -1);
+	moveVector = WVec2(0, -1);
 	
 	maxLifeTime = 15.f;
+
+	score = 10000;
 }
 
 void EnemyRusher::Update(float deltaTime)
 {
 	Enemy::Update(deltaTime);
 
-	Move(normalizedMoveVector * moveSpeed);	
+	Move(WVec2(-3.3f, moveSpeed));	
 }

@@ -19,11 +19,14 @@ public:
 	void DealDamage(Entity* dealer, float damage) override;
 
 	void On_SensorBeginOverlap(Entity* other) override;
+	void On_CollisionBegin(Entity* other, WVec2 point) override;
 
 	void SetLevelInstance(XennonLevel* instance) { levelInstance = instance; }
 	XennonLevel* GetLevelInstance() const { return levelInstance; }
 
 	float GetAnimFps() const { return animationFPS; }
+
+	bool GetIsInvincible() const { return isInvincible; }
 
 private:
 	XennonLevel* levelInstance = nullptr;
@@ -47,15 +50,19 @@ protected:
 	int renderLayer = 0;
 	float animationFPS = 2.5f;
 
+	float explosionSizeMult = 1.5f;
+
 	bool isSensor = true;
 
 	bool isInvincible = false;
 	float lifePoints = 100.f;
 	float bodyDamage = 50.f;
 
+	int score = 1000;
+
 public:
 	float moveSpeed = 2.f;
-	WVec2 normalizedMoveVector = WVec2(-1, 0);
+	WVec2 moveVector = WVec2(-1, 0);
 
 	float shotCooldownTime = 1.5f;
 	bool canShoot = false;

@@ -4,8 +4,11 @@
 #include "PlayerProjectile.h"
 #include "SpaceShip.h"
 #include "Explosion.h"
+#include "XennonLevel.h"
+#include "TextRenderer.h"
 
 #include "iostream"
+#include <string>
 
 
 using namespace WE;
@@ -31,6 +34,9 @@ void Enemy::Update(float deltaTime)
 
 void Enemy::DealDamage(Entity* dealer, float damage)
 {
+	if (isInvincible)
+		return;
+
 	Pawn::DealDamage(dealer, damage);
 
 	lifePoints -= damage;
@@ -44,13 +50,16 @@ void Enemy::DealDamage(Entity* dealer, float damage)
 
 void Enemy::DieByPlayer()
 {
-	if (isInvincible)
-		return;
+	GetGameContext()->GAME_InstantiateEntity<Explosion>(GetLocation(), (rand() % 618) * 0.01f, GetInitialSize() * explosionSizeMult);
 
-	GetGameContext()->GAME_InstantiateEntity<Explosion>(GetLocation(), 0.f, GetInitialSize());
+	if (GetLevelInstance())
+	{
+		GetLevelInstance()->AddScore(score);
+	}
 
-	//TODO give points
-	//spawn xp text prompt
+	auto scoreText = GetGameContext()->GAME_InstantiateEntity<TextRenderer>(GetLocation() + WVec2(0, 1), 0, WVec2(0.5));
+	scoreText->SetText(std::to_string(score));
+	scoreText->DestroyWithFloat(WVec2(0, 2), 0.5);
 
 	Destroy();
 }
@@ -66,11 +75,23 @@ void Enemy::On_SensorBeginOverlap(Entity* other)
 	if (hitPlayer)
 	{
 		hitPlayer->DealDamage(this, bodyDamage);
-
-		if (isSensor)
-			DieByPlayer();
+		DealDamage(hitPlayer, 9999.f); //receive damage
 	}
+}
 
+void Enemy::On_CollisionBegin(Entity* other, WVec2 point)
+{
+	Entity::On_CollisionBegin(other, point);
+
+	if (!other)
+		return;
+
+	SpaceShip* hitPlayer = dynamic_cast<SpaceShip*>(other);
+	if (hitPlayer)
+	{
+		hitPlayer->DealDamage(this, bodyDamage);
+		DealDamage(hitPlayer, 9999.f); //receive damage
+	}
 }
 
 void Enemy::HandleShoot(float deltaTime)

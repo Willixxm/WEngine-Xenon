@@ -5,6 +5,7 @@
 #include "Enemy.h"
 #include "Explosion2.h"
 
+#include <iostream>
 
 void PlayerProjectile::Start()
 {
@@ -35,15 +36,15 @@ void PlayerProjectile::On_CollisionBegin(Entity* other, WVec2 hitLocation)
 {
 	WE::Entity::On_SensorBeginOverlap(other);
 
-
 	Enemy* hitEnemy = dynamic_cast<Enemy*>(other);
 	if (hitEnemy)
 	{
 		hitEnemy->DealDamage(this, projectileDmg);
 
+		if (!hitEnemy->GetIsInvincible())
+			GetGameContext()->GAME_InstantiateEntity<Explosion2>(hitLocation, -6.28f / 3, WE::WVec2(2));
 	}
 
-	GetGameContext()->GAME_InstantiateEntity<Explosion>(hitLocation, 0.f, WE::WVec2(2));
 	Destroy();
 }
 
@@ -56,8 +57,9 @@ void PlayerProjectile::On_EnterOtherSensor(Entity* otherSensor)
 	{
 		hitEnemy->DealDamage(this, projectileDmg);
 
+		if (!hitEnemy->GetIsInvincible())
+			GetGameContext()->GAME_InstantiateEntity<Explosion2>(GetLocation(), -6.28f / 3, WE::WVec2(2));
 	}
 
-	GetGameContext()->GAME_InstantiateEntity<Explosion2>(GetLocation(), 0.f, WE::WVec2(2));
 	Destroy();
 }

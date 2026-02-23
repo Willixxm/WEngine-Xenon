@@ -155,8 +155,9 @@ namespace WE
 		void RENDER_SetOrthoCameraSize(float size);
 		void RENDER_SetOrthoCameraPosition(WVec2 newPos);
 
-		void RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer_close, WVec2 sizeOverride);
-		void RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer_close);
+		void RENDER_AddRenderComponent(Entity* entity, std::string filePath, int layer);
+		void RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer, WVec2 sizeOverride);
+		void RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer);
 
 		void RENDER_RemoveRenderComponent(Entity* entity);
 

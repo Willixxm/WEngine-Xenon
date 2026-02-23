@@ -10,6 +10,8 @@
 #include "Explosion.h"
 #include "TextRenderer.h"
 
+#include "Enemy.h"
+
 using namespace WE;
 
 void SpaceShip::Start() 
@@ -22,6 +24,8 @@ void SpaceShip::Start()
 
 	if (textRendererTest)
 		inputVectorText = GetGameContext()->GAME_InstantiateEntity<TextRenderer>(GetLocation() + WVec2(0, 2.f), 0.f, WVec2(0.5f));
+
+	
 }
 
 void SpaceShip::Update(float deltaTime) 
@@ -33,8 +37,6 @@ void SpaceShip::Update(float deltaTime)
 
 	//std::cout << GetLocation().x << " | " << GetLocation().y << '\n';
 }
-
-
 
 void SpaceShip::HandleShoot(float deltaTime)
 {
@@ -98,35 +100,51 @@ void SpaceShip::PrimaryFire()
 		bangText->SetText("Pew!");
 		bangText->DestroyWithFloat(WVec2(0, 2), 0.5);
 	}
-	
-
 }
 
 void SpaceShip::DealDamage(Entity* dealer, float damage)
 {
 	if (!isInvincible)
 	{
-		GetGameContext()->GAME_StartCoroutine(this, CoroutineID::invincibleAfterDmg, invincibilityDuration);
-		GetGameContext()->RENDER_SetAnimationTileParameters(this, 7, 7);
-		isInvincible = true;
+		currentHealth -= damage;
+		if (currentHealth <= 0)
+		{
+			GetGameContext()->GAME_StartCoroutine(this, CoroutineID::invincibleAfterDeath, invincibilityDuration);
+			GetGameContext()->RENDER_SetAnimationTileParameters(this, 7, 7);
+			GetGameContext()->GAME_InstantiateEntity<Explosion>(GetLocation(), 0.f, GetInitialSize() * 2.f);
+			isInvincible = true;
+		}
+		else
+		{
+			GetGameContext()->GAME_StartCoroutine(this, CoroutineID::flashAfterDamage, dmgFlashDuration);
+			GetGameContext()->RENDER_SetAnimationTileParameters(this, 14, 7);
+			isInvincible = true;
+		}
 
-		GetGameContext()->GAME_InstantiateEntity<Explosion>(GetLocation(), 0.f, GetInitialSize());
+		if (healthBar)
+			GetGameContext()->RENDER_SetManualAnimationState(healthBar, (maxHealth - currentHealth) / maxHealth);
+
 	}
-	
 }
+
 
 
 void SpaceShip::OnCoroutineUpdate(int ID, float duration)
 {
 	switch (ID)
 	{
-	case CoroutineID::invincibleAfterDmg:
-		if ((int)(duration*10) % 2 == 0)
+	case CoroutineID::invincibleAfterDeath:
+	{
+		float coroutineProgress = duration / invincibilityDuration;
+		if (coroutineProgress < 0.5f)
+			SetLocation(WVec2(-50, 0) + WVec2(30, 0) * (duration / invincibilityDuration) * 2);
+		
+		if ((int)(duration * 10) % 2 == 0)
 			GetGameContext()->RENDER_SetAnimationTileParameters(this, 0, 7);
 		else
 			GetGameContext()->RENDER_SetAnimationTileParameters(this, 7, 7);
-		break;
-
+	}
+	break;
 	}
 
 }
@@ -135,11 +153,17 @@ void SpaceShip::OnCoroutineEnd(int ID)
 {
 	switch (ID)
 	{
-	case CoroutineID::invincibleAfterDmg:
+	case CoroutineID::invincibleAfterDeath:
+		GetGameContext()->RENDER_SetAnimationTileParameters(this, 0, 7);
+		currentHealth = maxHealth;
+		GetGameContext()->RENDER_SetManualAnimationState(healthBar, (maxHealth - currentHealth) / maxHealth);
+		isInvincible = false;
+		break;
+	case CoroutineID::flashAfterDamage:
 		GetGameContext()->RENDER_SetAnimationTileParameters(this, 0, 7);
 		isInvincible = false;
 		break;
-
+	
 	}
 
 }

@@ -29,6 +29,12 @@ void TextRenderer::SetRotation(float newRotationRad)
 	RenderText();
 }
 
+void TextRenderer::SetFont(bool largeFont)
+{
+	useLargeFont = largeFont;
+	RenderText();
+}
+
 void TextRenderer::SetText(std::string newText)
 {
 	inputVectorText = newText;
@@ -52,7 +58,11 @@ void TextRenderer::RenderText()
 		if (i + 1 > textTiles.size())
 		{
 			Entity* tile = GetGameContext()->GAME_InstantiateEntity<Entity>(location, rotation, GetInitialSize());
-			GetGameContext()->RENDER_AddRenderComponent(tile, filePath, hTileCount, vTileCount, inputVectorText[i] - 32, 1, renderLayer);
+			GetGameContext()->RENDER_AddRenderComponent(tile, 
+				useLargeFont ? largeFontPath : smallFontPath, 
+				hTileCount, 
+				useLargeFont ? vTileCount : vTileCount_smallFont, 
+				inputVectorText[i] - 32, 1, renderLayer);
 			GetGameContext()->RENDER_SetAnimationParameters(tile, false);
 			textTiles.push_back(tile);
 		}

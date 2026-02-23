@@ -31,8 +31,9 @@ EnemyLoner::EnemyLoner()
 	timeUntilNextShot = (rand() % 100) * (1/100.f) * shotCooldownTime;
 
 	moveSpeed = 6.f;
-	normalizedMoveVector = WVec2(-1, 0);
+	moveVector = WVec2(-1, 0);
 
+	score = 15000;
 
 }
 
@@ -47,7 +48,7 @@ void EnemyLoner::Update(float deltaTime)
 {
 	Enemy::Update(deltaTime);
 
-	Move(normalizedMoveVector * moveSpeed);	
+	Move(moveVector * moveSpeed);	
 }
 
 

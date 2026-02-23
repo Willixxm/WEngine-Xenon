@@ -1,7 +1,8 @@
 #include "DroneSpawner.h"
 #include "WEngine/GameContext.h"
 #include "EnemyDrone.h"
-#include "iostream"
+#include "EnemyDrone.h"
+
 
 
 void DroneSpawner::StartSpawning()
@@ -18,8 +19,17 @@ void DroneSpawner::OnCoroutineUpdate(int ID, float duration)
 		{
 			EnemyDrone* enemy = GetGameContext()->GAME_InstantiateEntity<EnemyDrone>(GetLocation(), 0.f, GetInitialSize());
 			enemy->SetLevelInstance(levelInstance);
-			enemy->normalizedMoveVector = normalizedMoveVector;
+			enemy->moveVector = moveVector;
 			
+			if (lastSpawnedEnemy)
+			{
+				enemy->previousDroneInGroup = lastSpawnedEnemy;
+				lastSpawnedEnemy->nextDroneInGroup = enemy;
+				enemy->deathCountInGroup = lastSpawnedEnemy->deathCountInGroup;
+			}
+
+			lastSpawnedEnemy = enemy;
+
 			++spawnedEnemies;
 		}
 		break;

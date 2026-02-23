@@ -13,6 +13,7 @@ public:
 	void Update(float deltaTime) override;
 
 	void SetText(std::string newText);
+	void SetFont(bool largeFont);
 
 	void SetLocation(WE::WVec2 pos) override;
 	void SetRotation(float newRotationRad) override;
@@ -38,10 +39,15 @@ protected:
 
 	int renderLayer = 20;
 	std::vector<Entity*> textTiles;
-	std::string filePath = "graphics/font16x16.bmp";
+	std::string largeFontPath = "graphics/font16x16.bmp";
+	std::string smallFontPath = "graphics/font8x8.bmp";
 
+	bool useLargeFont = true;
+	
 	int hTileCount = 8;
 	int vTileCount = 12;
+
+	int vTileCount_smallFont = 16;
 
 public:
 	bool textCentered = false;

@@ -4,6 +4,7 @@
 using namespace WE;
 
 class XennonLevel;
+class EnemyDrone;
 
 class DroneSpawner : public Entity
 {
@@ -17,13 +18,15 @@ public:
 	XennonLevel* GetLevelInstance() const { return levelInstance; }
 
 
-	WVec2 normalizedMoveVector = WVec2(-1, 0);
+	WVec2 moveVector = WVec2(-1, 0);
 	int enemiesToSpawn = 5;
 	float spawnInterval = 0.5f;
 
 private:
 	XennonLevel* levelInstance = nullptr;
+
 	int spawnedEnemies = 0;
+	EnemyDrone* lastSpawnedEnemy = nullptr;
 
 private:
 	enum CoroutineID : int

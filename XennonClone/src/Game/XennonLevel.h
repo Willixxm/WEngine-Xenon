@@ -23,6 +23,10 @@
 #include <cmath>
 #include <iostream>
 
+#include <string>
+#include <iomanip>
+#include <sstream>
+
 class XennonLevel : public WE::Entity
 {
 
@@ -33,13 +37,70 @@ public:
 
 		GetGameContext()->MEMORY_SetAutoUnloadAssetIfUnused(false);
 
-		GetGameContext()->RENDER_SetOrthoCameraSize(34.f * 1);
 
-		player = GetGameContext()->GAME_InstantiateEntity<SpaceShip>(WE::WVec2(-20, 0), 2*3.14159265 * -1/4, WE::WVec2(4));
-		scoreText = GetGameContext()->GAME_InstantiateEntity<TextRenderer>(WE::WVec2((16.f/9)* -34.f, -34.f), 0.f, WE::WVec2(1.0f));
+		float camSize = 34.f * 1.f;
+		GetGameContext()->RENDER_SetOrthoCameraSize(camSize);
 
-		scoreText->SetText("score");
+		player = GetGameContext()->GAME_InstantiateEntity<SpaceShip>(WE::WVec2(-20, 0), 2 * 3.14159265 * -1 / 4, WE::WVec2(4));
 
+
+		// GAME BORDERS
+		Entity* topBorder = GetGameContext()->GAME_InstantiateEntity<Entity>(WE::WVec2(0, 19), 0, WE::WVec2(100, 2));
+		GetGameContext()->PHYS_AddPhysComponentToEntity(topBorder, WE::WBodyType::staticBody, topBorder->GetInitialSize(), WCollisionLayer::Layer3, WCollisionLayer::Layer1, false, 1.f);
+		Entity* bottomBorder = GetGameContext()->GAME_InstantiateEntity<Entity>(WE::WVec2(0, -19), 0, WE::WVec2(100, 2));
+		GetGameContext()->PHYS_AddPhysComponentToEntity(bottomBorder, WE::WBodyType::staticBody, topBorder->GetInitialSize(), WCollisionLayer::Layer3, WCollisionLayer::Layer1, false, 1.f);
+		Entity* rightBorder = GetGameContext()->GAME_InstantiateEntity<Entity>(WE::WVec2(40, 0), 0, WE::WVec2(2, 30));
+		GetGameContext()->PHYS_AddPhysComponentToEntity(rightBorder, WE::WBodyType::staticBody, rightBorder->GetInitialSize(), WCollisionLayer::Layer3, WCollisionLayer::Layer1 | WCollisionLayer::Layer2, false, 1.f);
+		Entity* leftBorder = GetGameContext()->GAME_InstantiateEntity<Entity>(WE::WVec2(-40, 0), 0, WE::WVec2(2, 30));
+		GetGameContext()->PHYS_AddPhysComponentToEntity(leftBorder, WE::WBodyType::staticBody, leftBorder->GetInitialSize(), WCollisionLayer::Layer3, WCollisionLayer::Layer1, false, 1.f);
+		
+		GetGameContext()->RENDER_AddRenderComponent(topBorder, "graphics/bblogo.bmp", 20);
+		GetGameContext()->RENDER_AddRenderComponent(bottomBorder, "graphics/bblogo.bmp", 20);
+		GetGameContext()->RENDER_AddRenderComponent(rightBorder, "graphics/bblogo.bmp", 20);
+		GetGameContext()->RENDER_AddRenderComponent(leftBorder, "graphics/bblogo.bmp", 20);
+	
+
+
+		float aspRatio = 16.f / 7;
+		float safeBorder = camSize * 0.03f; //safe border
+
+		// PLAYER SCORE
+		auto playerNameText = GetGameContext()->GAME_InstantiateEntity<TextRenderer>(
+			WE::WVec2(aspRatio * (-camSize / 2) + safeBorder, (camSize / 2) - safeBorder)
+			, 0.f, WE::WVec2(0.8f));
+		playerNameText->SetText("Player One");
+
+		scoreText = GetGameContext()->GAME_InstantiateEntity<TextRenderer>(
+			WE::WVec2(aspRatio * (-camSize / 2) + safeBorder + 0.3f, (camSize / 2) - safeBorder*2 - 0.2f)
+			, 0.f, WE::WVec2(1.5f));
+		UpdateScoreText();
+
+		// HIGH SCORE
+		auto highScoreTitle = GetGameContext()->GAME_InstantiateEntity<TextRenderer>(
+			WE::WVec2(0, (camSize / 2) - safeBorder)
+			, 0.f, WE::WVec2(0.7f));
+		highScoreTitle->textCentered = true;
+		highScoreTitle->SetFont(false);
+		highScoreTitle->SetText("Hi Score");
+
+		auto highScoreCount = GetGameContext()->GAME_InstantiateEntity<TextRenderer>(
+			WE::WVec2(0, (camSize / 2) - safeBorder * 2 + 0.2f)
+			, 0.f, WE::WVec2(0.7f));
+		highScoreCount->textCentered = true;
+		highScoreCount->SetFont(false);
+		highScoreCount->SetText("0005215335"); 
+
+		Entity* healthBar = GetGameContext()->GAME_InstantiateEntity<Entity>(
+			WE::WVec2(aspRatio * (-camSize / 2) + safeBorder + 5, (-camSize / 2) + safeBorder + 2)
+			, 0.f, WE::WVec2(10));
+		GetGameContext()->RENDER_AddRenderComponent(healthBar, "graphics/healthBar.bmp", 1, 60, 0, 60, 21);
+		GetGameContext()->RENDER_SetAnimationParameters(healthBar, false);
+		if (player)
+		{
+			GetGameContext()->RENDER_SetManualAnimationState(healthBar, (player->GetMaxHealth() - player->GetCurrentHealth()) / player->GetMaxHealth());
+			player->healthBar = healthBar;
+		}
+		
 
 		BackGround* background = GetGameContext()->GAME_InstantiateEntity<BackGround>(WE::WVec2(0, 0), 0.f, WE::WVec2(0));
 		
@@ -53,18 +114,35 @@ public:
 public:
 	Entity* GetPlayer() const { return player; }
 private:
-	Entity* player = nullptr;
+	SpaceShip* player = nullptr;
 	TextRenderer* scoreText = nullptr;
+
+	int playerScore;
+
+	void UpdateScoreText()
+	{
+		std::ostringstream oss;
+		oss << std::setw(10) << std::setfill('0') << playerScore;
+
+		scoreText->SetText(oss.str());
+	}
+
+public:
+	void AddScore(int score)
+	{
+		playerScore += score;
+		UpdateScoreText();
+	}
 
 
 public:
-	float difficulty = 1.0f; //set from 0 to 1
+	float difficulty = 0.5f; //set from 0 to 1
 
 
 private:
 	float spawnCoolDown = 5.0f;
-	float minimumSpawnCoolDown = 1.f;
-	float spawnCoolDownMultiplier = 0.98f;
+	float minimumSpawnCoolDown = 2.f;
+	float spawnCoolDownMultiplier = 0.99f;
 
 	float timeUntilNextSpawn = spawnCoolDown;
 
@@ -105,7 +183,7 @@ private:
 		spawnLocation.y += playSize.y * sign;
 		EnemyRusher* enemy = GetGameContext()->GAME_InstantiateEntity<EnemyRusher>(spawnLocation, 0.f, WE::WVec2(4));
 		enemy->SetLevelInstance(this);
-		enemy->normalizedMoveVector *= sign;
+		enemy->moveVector *= sign;
 		
 	}
 
@@ -116,7 +194,7 @@ private:
 		spawnLocation.y += playSize.y * 1.5f * sign;
 		DroneSpawner* spawner = GetGameContext()->GAME_InstantiateEntity<DroneSpawner>(spawnLocation, 0.f, WE::WVec2(2.5));
 		spawner->SetLevelInstance(this);
-		spawner->normalizedMoveVector = WVec2(0, -1) * sign;
+		spawner->moveVector = WVec2(0, -1) * sign;
 		spawner->enemiesToSpawn = count;
 		spawner->spawnInterval = spawnInterval;
 		spawner->StartSpawning();
@@ -131,8 +209,8 @@ private:
 		Enemy* enemy = nullptr;
 
 		float bigAsteroidSize = 5.f;
-		float mediumAsteroidSize = bigAsteroidSize * 0.5f;
-		float smallAsteroidSize = mediumAsteroidSize * 0.66f;
+		float mediumAsteroidSize = 3.f;
+		float smallAsteroidSize = 2.f;
 
 		float randomRotation = (rand() % 618) * 0.01f;
 
@@ -178,7 +256,7 @@ private:
 		float randomVariance = ((rand() % 100) / 100.f); // random float 0 to 1
 		moveSpeed += randomVariance * (moveSpeed / 2); //speed up to 150%
 		GetGameContext()->RENDER_SetAnimationParameters(enemy, true, enemy->GetAnimFps() * randomVariance * 2);
-		enemy->normalizedMoveVector = WVec2(-1, ((rand() % 100) / 100.f - 50.f) * (1 / 10)).normalized();
+		enemy->moveVector = WVec2(-1, ((rand() % 100) / 100.f - 50.f) * (1 / 10)).normalized();
 		enemy->moveSpeed = moveSpeed;
 		enemy->SetLevelInstance(this);
 		enemy->maxLifeTime = 40.f;
@@ -200,7 +278,7 @@ public:
 
 			float spawnDifficulty = (rand() % 100 + 1) / 100.f; // 0.01 to 1 random number
 			
-			std::cout << "random value: " << spawnDifficulty << '\n';
+			//std::cout << "random value: " << spawnDifficulty << '\n';
 
 			float diff;
 			if (difficulty < 0.01f)
@@ -211,18 +289,18 @@ public:
 				diff = difficulty;
 
 			std::cout << "difficulty: " << difficulty << '\n';
-			std::cout << "corrected diff: " << diff << '\n';
+			//std::cout << "corrected diff: " << diff << '\n';
 
 			diff = pow(1.f - diff, 2.5f) + 0.5f; //transform range from 0 to 1 linear into 0.5 to 1.5 exponential, inverted
 
-			std::cout << "taper: " << diff << '\n';
+			//std::cout << "taper: " << diff << '\n';
 
 			float n = pow(spawnDifficulty, pow(diff, 2));
 			float d = (2 * diff);
 
 			spawnDifficulty = n / d; //bias random spawnDifficulty using difficulty value
 
-			std::cout << "bias value: " << spawnDifficulty << '\n';
+			std::cout << "wave difficulty: " << spawnDifficulty << '\n';
 			std::cout << "===================" << '\n';
 
 			// spawn waves from hardest->easiest

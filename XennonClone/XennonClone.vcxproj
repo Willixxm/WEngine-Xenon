@@ -93,12 +93,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Game\AsteroidMetalBig.cpp" />
-    <ClCompile Include="src\Game\AsteroidMetalMedium.cpp" />
-    <ClCompile Include="src\Game\AsteroidMetalSmall.cpp" />
-    <ClCompile Include="src\Game\AsteroidStoneMedium.cpp" />
-    <ClCompile Include="src\Game\AsteroidStoneSmall.cpp" />
-    <ClCompile Include="src\Game\AsteroidStoneBig.cpp" />
+    <ClCompile Include="src\Game\Asteroid.cpp" />
     <ClCompile Include="src\Game\EnemyDrone.cpp" />
     <ClCompile Include="src\Game\DroneSpawner.cpp" />
     <ClCompile Include="src\Game\Explosion2.cpp" />
@@ -115,6 +110,7 @@
     <ClCompile Include="src\Game\TextRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Game\Asteroid.h" />
     <ClInclude Include="src\Game\AsteroidMetalBig.h" />
     <ClInclude Include="src\Game\AsteroidMetalMedium.h" />
     <ClInclude Include="src\Game\AsteroidMetalSmall.h" />

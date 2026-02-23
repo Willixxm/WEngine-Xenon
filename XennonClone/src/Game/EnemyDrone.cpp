@@ -12,11 +12,15 @@ EnemyDrone::EnemyDrone()
 	renderLayer = 0;
 	animationFPS = 15.f;
 
-	lifePoints = 50.f;
+	lifePoints = 25.f;
 	moveSpeed = 6.f;
-	normalizedMoveVector = WVec2(0, -1);
+	moveVector = WVec2(0, -1);
 
 	maxLifeTime = 12.f;
+
+	score = 5000;
+	initScore = score;
+
 }
 
 void EnemyDrone::Update(float deltaTime)
@@ -27,5 +31,35 @@ void EnemyDrone::Update(float deltaTime)
 	float sign = std::copysign(1.0f, oscillator);
 	float sideWaysForce = sign * pow(abs(oscillator), 1/1.2f);
 	
-	Move(normalizedMoveVector * moveSpeed + WVec2(sideWaysForce, 0) * moveSpeed*1.5f);
+	Move(moveVector * moveSpeed + WVec2(sideWaysForce, 0) * moveSpeed*1.5f);
+}
+
+void EnemyDrone::DieByPlayer()
+{
+	score *= (deathCountInGroup + 1);
+
+	Enemy::DieByPlayer();
+}
+
+void EnemyDrone::Destroy()
+{
+	EnemyDrone* nextDrone = nextDroneInGroup;
+	while (nextDrone)
+	{
+		nextDrone->deathCountInGroup += 1;
+		nextDrone = nextDrone->nextDroneInGroup;
+	}
+	EnemyDrone* prevDrone = previousDroneInGroup;
+	while (prevDrone)
+	{
+		prevDrone->deathCountInGroup += 1;
+		prevDrone = prevDrone->previousDroneInGroup;
+	}
+
+	if (nextDroneInGroup)
+		nextDroneInGroup->previousDroneInGroup = previousDroneInGroup;
+	if (previousDroneInGroup)
+		previousDroneInGroup->nextDroneInGroup = nextDroneInGroup;
+
+	Entity::Destroy();
 }

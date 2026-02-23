@@ -1475,13 +1475,20 @@ namespace WE
 		physicsPImpl->SetWorldGravity(vec);
 	}
 
-	void GameContext::RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer_close)
+	void GameContext::RENDER_AddRenderComponent(Entity* entity, std::string filePath, int layer)
 	{
-		RENDER_AddRenderComponent(entity, filePath, hTiles, vTiles, tileOffset, tileSpan, layer_close, entity->GetInitialSize());
+		RENDER_AddRenderComponent(entity, filePath, 1, 1, 0, 1, layer, entity->GetInitialSize());
 	}
-	void GameContext::RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer_close, WVec2 sizeOverride)
+	void GameContext::RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer)
 	{
-		windowPImpl->AddToRender(entity, filePath, hTiles, vTiles, tileOffset, tileSpan, sizeOverride.x, sizeOverride.y, layer_close);
+		RENDER_AddRenderComponent(entity, filePath, hTiles, vTiles, tileOffset, tileSpan, layer, entity->GetInitialSize());
+	}
+	void GameContext::RENDER_AddRenderComponent(Entity* entity, std::string filePath, int hTiles, int vTiles, int tileOffset, int tileSpan, int layer, WVec2 sizeOverride)
+	{
+		if (tileSpan < 1)
+			tileSpan = 1;
+		
+		windowPImpl->AddToRender(entity, filePath, hTiles, vTiles, tileOffset, tileSpan, sizeOverride.x, sizeOverride.y, layer);
 	}
 	void GameContext::RENDER_RemoveRenderComponent(Entity* entity)
 	{
