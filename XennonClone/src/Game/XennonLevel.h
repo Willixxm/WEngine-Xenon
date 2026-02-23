@@ -64,6 +64,7 @@ public:
 		float aspRatio = 16.f / 7;
 		float safeBorder = camSize * 0.03f; //safe border
 
+		// ============
 		// PLAYER SCORE
 		auto playerNameText = GetGameContext()->GAME_InstantiateEntity<TextRenderer>(
 			WE::WVec2(aspRatio * (-camSize / 2) + safeBorder, (camSize / 2) - safeBorder)
@@ -74,7 +75,10 @@ public:
 			WE::WVec2(aspRatio * (-camSize / 2) + safeBorder + 0.3f, (camSize / 2) - safeBorder*2 - 0.2f)
 			, 0.f, WE::WVec2(1.5f));
 		UpdateScoreText();
+		// ============
 
+
+		// ==========
 		// HIGH SCORE
 		auto highScoreTitle = GetGameContext()->GAME_InstantiateEntity<TextRenderer>(
 			WE::WVec2(0, (camSize / 2) - safeBorder)
@@ -83,13 +87,17 @@ public:
 		highScoreTitle->SetFont(false);
 		highScoreTitle->SetText("Hi Score");
 
-		auto highScoreCount = GetGameContext()->GAME_InstantiateEntity<TextRenderer>(
+		hiScoreText = GetGameContext()->GAME_InstantiateEntity<TextRenderer>(
 			WE::WVec2(0, (camSize / 2) - safeBorder * 2 + 0.2f)
 			, 0.f, WE::WVec2(0.7f));
-		highScoreCount->textCentered = true;
-		highScoreCount->SetFont(false);
-		highScoreCount->SetText("0005215335"); 
+		hiScoreText->textCentered = true;
+		hiScoreText->SetFont(false);
+		UpdateHiScoreText();
+		// ==========
 
+
+		// ==========
+		// HEALTH BAR
 		Entity* healthBar = GetGameContext()->GAME_InstantiateEntity<Entity>(
 			WE::WVec2(aspRatio * (-camSize / 2) + safeBorder + 5, (-camSize / 2) + safeBorder + 2)
 			, 0.f, WE::WVec2(10));
@@ -100,7 +108,7 @@ public:
 			GetGameContext()->RENDER_SetManualAnimationState(healthBar, (player->GetMaxHealth() - player->GetCurrentHealth()) / player->GetMaxHealth());
 			player->healthBar = healthBar;
 		}
-		
+		// ==========
 
 		BackGround* background = GetGameContext()->GAME_InstantiateEntity<BackGround>(WE::WVec2(0, 0), 0.f, WE::WVec2(0));
 		
@@ -116,8 +124,10 @@ public:
 private:
 	SpaceShip* player = nullptr;
 	TextRenderer* scoreText = nullptr;
-
 	int playerScore;
+
+	TextRenderer* hiScoreText = nullptr;
+	int playerHiScore = 521533;
 
 	void UpdateScoreText()
 	{
@@ -125,6 +135,19 @@ private:
 		oss << std::setw(10) << std::setfill('0') << playerScore;
 
 		scoreText->SetText(oss.str());
+
+		if (playerScore > playerHiScore)
+		{
+			playerHiScore = playerScore;
+			UpdateHiScoreText();
+		}
+	}
+	void UpdateHiScoreText()
+	{
+		std::ostringstream oss;
+		oss << std::setw(10) << std::setfill('0') << playerHiScore;
+
+		hiScoreText->SetText(oss.str());
 	}
 
 public:
@@ -161,6 +184,9 @@ private:
 			playSize.y * rndPercent() - playSize.y / 2);
 	}
 
+
+
+
 	// ====================
 	// === SPAWNING =======
 	// ====================
@@ -180,7 +206,7 @@ private:
 		spawnLocation.x *= 0.5f;
 		spawnLocation.x += playSize.x/3;
 		int sign = rndSign();
-		spawnLocation.y += playSize.y * sign;
+		spawnLocation.y += playSize.y * 1.5f * sign;
 		EnemyRusher* enemy = GetGameContext()->GAME_InstantiateEntity<EnemyRusher>(spawnLocation, 0.f, WE::WVec2(4));
 		enemy->SetLevelInstance(this);
 		enemy->moveVector *= sign;
@@ -340,6 +366,8 @@ public:
 				Spawn_DroneSwarm(5, 0.5f);
 				Spawn_Asteroid(rand() % 3, rand() % 2);
 				Spawn_Asteroid(rand() % 3, rand() % 2);
+				Spawn_Rusher();
+				Spawn_Rusher();
 			}
 			else if (spawnDifficulty > 0.5f)
 			{
@@ -349,6 +377,8 @@ public:
 				Spawn_Asteroid(rand() % 3, rand() % 2);
 				Spawn_Asteroid(rand() % 3, rand() % 2);
 				Spawn_Asteroid(rand() % 3, rand() % 2);
+				Spawn_Rusher();
+				Spawn_Rusher();
 			}
 			else if (spawnDifficulty > 0.4f)
 			{

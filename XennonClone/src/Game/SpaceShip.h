@@ -25,8 +25,9 @@ public:
 	float GetMaxHealth() const { return maxHealth; }
 
 private:
+	bool canShoot = true;
 	float timeUntilNextShot = 0.f;
-	const float fireCoolDown = 0.15f;
+	const float fireCoolDown = 0.25f;
 	float moveSpeed = 17.5f;
 
 	float maxHealth = 500.f;

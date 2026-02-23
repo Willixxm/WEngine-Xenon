@@ -16,7 +16,7 @@ public:
 		renderLayer = 0;
 		animationFPS = 9.f;
 
-		lifePoints = 50.f;
+		lifePoints = 25.f;
 
 		moveSpeed = 0.f;
 

@@ -40,8 +40,11 @@ void SpaceShip::Update(float deltaTime)
 
 void SpaceShip::HandleShoot(float deltaTime)
 {
-	if (timeUntilNextShot <= 0)
+	if (timeUntilNextShot <= 0 )
 	{
+		if (!canShoot)
+			return;
+
 		if (GetGameContext()->INPUT_GetJoyButtonDown(INPUT_JoyButtonCode::FaceDown)
 			|| GetGameContext()->INPUT_GetKeyDown(INPUT_KeyCode::MouseLeft)
 			|| GetGameContext()->INPUT_GetKeyDown(INPUT_KeyCode::Spacebar) )
@@ -108,17 +111,18 @@ void SpaceShip::DealDamage(Entity* dealer, float damage)
 	{
 		currentHealth -= damage;
 		if (currentHealth <= 0)
-		{
+		{ // DIE
 			GetGameContext()->GAME_StartCoroutine(this, CoroutineID::invincibleAfterDeath, invincibilityDuration);
 			GetGameContext()->RENDER_SetAnimationTileParameters(this, 7, 7);
 			GetGameContext()->GAME_InstantiateEntity<Explosion>(GetLocation(), 0.f, GetInitialSize() * 2.f);
 			isInvincible = true;
+			canShoot = false;
 		}
 		else
-		{
+		{ // TAKE DAMAGE
 			GetGameContext()->GAME_StartCoroutine(this, CoroutineID::flashAfterDamage, dmgFlashDuration);
 			GetGameContext()->RENDER_SetAnimationTileParameters(this, 14, 7);
-			isInvincible = true;
+			isInvincible = true; // very short invincibility
 		}
 
 		if (healthBar)
@@ -137,8 +141,18 @@ void SpaceShip::OnCoroutineUpdate(int ID, float duration)
 	{
 		float coroutineProgress = duration / invincibilityDuration;
 		if (coroutineProgress < 0.5f)
+		{
 			SetLocation(WVec2(-50, 0) + WVec2(30, 0) * (duration / invincibilityDuration) * 2);
+
+			GetGameContext()->RENDER_SetManualAnimationState(healthBar, 1 - coroutineProgress * 2);
+		}
+		else if (!canShoot)
+		{
+			GetGameContext()->RENDER_SetManualAnimationState(healthBar, 0);
+			canShoot = true;
+		}
 		
+
 		if ((int)(duration * 10) % 2 == 0)
 			GetGameContext()->RENDER_SetAnimationTileParameters(this, 0, 7);
 		else
