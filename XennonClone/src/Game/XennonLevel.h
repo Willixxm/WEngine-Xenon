@@ -19,6 +19,8 @@
 #include "AsteroidMetalMedium.h"
 #include "AsteroidMetalSmall.h"
 
+#include "Companion.h"
+
 #include <cstdlib>
 #include <cmath>
 #include <iostream>
@@ -37,12 +39,10 @@ public:
 
 		GetGameContext()->MEMORY_SetAutoUnloadAssetIfUnused(false);
 
-
 		float camSize = 34.f * 1.f;
 		GetGameContext()->RENDER_SetOrthoCameraSize(camSize);
 
 		player = GetGameContext()->GAME_InstantiateEntity<SpaceShip>(WE::WVec2(-20, 0), 2 * 3.14159265 * -1 / 4, WE::WVec2(4));
-
 
 		// GAME BORDERS
 		Entity* topBorder = GetGameContext()->GAME_InstantiateEntity<Entity>(WE::WVec2(0, 19), 0, WE::WVec2(100, 2));
@@ -51,13 +51,13 @@ public:
 		GetGameContext()->PHYS_AddPhysComponentToEntity(bottomBorder, WE::WBodyType::staticBody, topBorder->GetInitialSize(), WCollisionLayer::Layer3, WCollisionLayer::Layer1, false, 1.f);
 		Entity* rightBorder = GetGameContext()->GAME_InstantiateEntity<Entity>(WE::WVec2(40, 0), 0, WE::WVec2(2, 30));
 		GetGameContext()->PHYS_AddPhysComponentToEntity(rightBorder, WE::WBodyType::staticBody, rightBorder->GetInitialSize(), WCollisionLayer::Layer3, WCollisionLayer::Layer1 | WCollisionLayer::Layer2, false, 1.f);
-		Entity* leftBorder = GetGameContext()->GAME_InstantiateEntity<Entity>(WE::WVec2(-40, 0), 0, WE::WVec2(2, 30));
-		GetGameContext()->PHYS_AddPhysComponentToEntity(leftBorder, WE::WBodyType::staticBody, leftBorder->GetInitialSize(), WCollisionLayer::Layer3, WCollisionLayer::Layer1, false, 1.f);
+		//Entity* leftBorder = GetGameContext()->GAME_InstantiateEntity<Entity>(WE::WVec2(-40, 0), 0, WE::WVec2(2, 30));
+		//GetGameContext()->PHYS_AddPhysComponentToEntity(leftBorder, WE::WBodyType::staticBody, leftBorder->GetInitialSize(), WCollisionLayer::Layer3, WCollisionLayer::Layer1, false, 1.f);
 		
 		GetGameContext()->RENDER_AddRenderComponent(topBorder, "graphics/bblogo.bmp", 20);
 		GetGameContext()->RENDER_AddRenderComponent(bottomBorder, "graphics/bblogo.bmp", 20);
 		GetGameContext()->RENDER_AddRenderComponent(rightBorder, "graphics/bblogo.bmp", 20);
-		GetGameContext()->RENDER_AddRenderComponent(leftBorder, "graphics/bblogo.bmp", 20);
+		//GetGameContext()->RENDER_AddRenderComponent(leftBorder, "graphics/bblogo.bmp", 20);
 	
 
 
@@ -107,6 +107,7 @@ public:
 		{
 			GetGameContext()->RENDER_SetManualAnimationState(healthBar, (player->GetMaxHealth() - player->GetCurrentHealth()) / player->GetMaxHealth());
 			player->healthBar = healthBar;
+			player->healthBarID = healthBar->GetID();
 		}
 		// ==========
 
@@ -124,10 +125,10 @@ public:
 private:
 	SpaceShip* player = nullptr;
 	TextRenderer* scoreText = nullptr;
-	int playerScore;
+	unsigned int playerScore;
 
 	TextRenderer* hiScoreText = nullptr;
-	int playerHiScore = 521533;
+	unsigned int playerHiScore = 521533;
 
 	void UpdateScoreText()
 	{
@@ -159,15 +160,15 @@ public:
 
 
 public:
-	float difficulty = 0.5f; //set from 0 to 1
+	float difficulty = 0.6f; //set from 0 to 1
 
 
 private:
-	float spawnCoolDown = 5.0f;
-	float minimumSpawnCoolDown = 2.f;
-	float spawnCoolDownMultiplier = 0.99f;
+	float spawnCoolDown = 4.0f;
+	float minimumSpawnCoolDown = 2.5f;
+	float spawnCoolDownMultiplier = 0.992f;
 
-	float timeUntilNextSpawn = spawnCoolDown;
+	float timeUntilNextSpawn = 0;
 
 	WVec2 playSize = WVec2(60.f, 30.f);
 	float padding = 1.2f;
@@ -186,7 +187,6 @@ private:
 
 
 
-
 	// ====================
 	// === SPAWNING =======
 	// ====================
@@ -196,7 +196,7 @@ private:
 		spawnLocation.x *= 0.5f;
 		spawnLocation.x += playSize.x;
 
-		EnemyLoner* enemy = GetGameContext()->GAME_InstantiateEntity<EnemyLoner>(spawnLocation, 0.f, WE::WVec2(4));
+		EnemyLoner* enemy = GetGameContext()->GAME_InstantiateEntity<EnemyLoner>(spawnLocation, 0.f);
 		enemy->SetLevelInstance(this);
 	}
 
@@ -206,10 +206,10 @@ private:
 		spawnLocation.x *= 0.5f;
 		spawnLocation.x += playSize.x/3;
 		int sign = rndSign();
-		spawnLocation.y += playSize.y * 1.5f * sign;
-		EnemyRusher* enemy = GetGameContext()->GAME_InstantiateEntity<EnemyRusher>(spawnLocation, 0.f, WE::WVec2(4));
+		spawnLocation.y += playSize.y * 1.2f * sign;
+		EnemyRusher* enemy = GetGameContext()->GAME_InstantiateEntity<EnemyRusher>(spawnLocation, 0.f);
 		enemy->SetLevelInstance(this);
-		enemy->moveVector *= sign;
+		enemy->moveVector = WVec2(0, -sign);
 		
 	}
 
@@ -217,10 +217,10 @@ private:
 	{
 		WVec2 spawnLocation = rndPlaceOnBoard();
 		int sign = rndSign();
-		spawnLocation.y += playSize.y * 1.5f * sign;
-		DroneSpawner* spawner = GetGameContext()->GAME_InstantiateEntity<DroneSpawner>(spawnLocation, 0.f, WE::WVec2(2.5));
+		spawnLocation.y += playSize.y * 1.2f * sign;
+		DroneSpawner* spawner = GetGameContext()->GAME_InstantiateEntity<DroneSpawner>(spawnLocation, 0.f);
 		spawner->SetLevelInstance(this);
-		spawner->moveVector = WVec2(0, -1) * sign;
+		spawner->moveVector = WVec2(0, -sign);
 		spawner->enemiesToSpawn = count;
 		spawner->spawnInterval = spawnInterval;
 		spawner->StartSpawning();
@@ -234,10 +234,6 @@ private:
 
 		Enemy* enemy = nullptr;
 
-		float bigAsteroidSize = 5.f;
-		float mediumAsteroidSize = 3.f;
-		float smallAsteroidSize = 2.f;
-
 		float randomRotation = (rand() % 618) * 0.01f;
 
 		if (metal)
@@ -245,14 +241,14 @@ private:
 			switch (size_division)
 			{
 			case 2:
-				enemy = GetGameContext()->GAME_InstantiateEntity<AsteroidMetalSmall>(spawnLocation, randomRotation, WE::WVec2(smallAsteroidSize));
+				enemy = GetGameContext()->GAME_InstantiateEntity<AsteroidMetalSmall>(spawnLocation, randomRotation);
 				break;
 			case 1:
-				enemy = GetGameContext()->GAME_InstantiateEntity<AsteroidMetalMedium>(spawnLocation, randomRotation, WE::WVec2(mediumAsteroidSize));
+				enemy = GetGameContext()->GAME_InstantiateEntity<AsteroidMetalMedium>(spawnLocation, randomRotation);
 				break;
 			case 0:
 			default:
-				enemy = GetGameContext()->GAME_InstantiateEntity<AsteroidMetalBig>(spawnLocation, randomRotation, WE::WVec2(bigAsteroidSize));
+				enemy = GetGameContext()->GAME_InstantiateEntity<AsteroidMetalBig>(spawnLocation, randomRotation);
 				break;
 			}
 		}
@@ -261,14 +257,14 @@ private:
 			switch (size_division)
 			{
 			case 2:
-				enemy = GetGameContext()->GAME_InstantiateEntity<AsteroidStoneSmall>(spawnLocation, randomRotation, WE::WVec2(smallAsteroidSize));
+				enemy = GetGameContext()->GAME_InstantiateEntity<AsteroidStoneSmall>(spawnLocation, randomRotation);
 				break;
 			case 1:
-				enemy = GetGameContext()->GAME_InstantiateEntity<AsteroidStoneMedium>(spawnLocation, randomRotation, WE::WVec2(mediumAsteroidSize));
+				enemy = GetGameContext()->GAME_InstantiateEntity<AsteroidStoneMedium>(spawnLocation, randomRotation);
 				break;
 			case 0:
 			default:
-				enemy = GetGameContext()->GAME_InstantiateEntity<AsteroidStoneBig>(spawnLocation, randomRotation, WE::WVec2(bigAsteroidSize));
+				enemy = GetGameContext()->GAME_InstantiateEntity<AsteroidStoneBig>(spawnLocation, randomRotation);
 				break;
 			}			 
 		}
@@ -302,6 +298,9 @@ public:
 			if (spawnCoolDown > minimumSpawnCoolDown)
 				spawnCoolDown *= spawnCoolDownMultiplier;
 
+			if (difficulty < 1)
+				difficulty += 0.01f;
+
 			float spawnDifficulty = (rand() % 100 + 1) / 100.f; // 0.01 to 1 random number
 			
 			//std::cout << "random value: " << spawnDifficulty << '\n';
@@ -314,7 +313,7 @@ public:
 			else
 				diff = difficulty;
 
-			std::cout << "difficulty: " << difficulty << '\n';
+			//std::cout << "difficulty: " << difficulty << '\n';
 			//std::cout << "corrected diff: " << diff << '\n';
 
 			diff = pow(1.f - diff, 2.5f) + 0.5f; //transform range from 0 to 1 linear into 0.5 to 1.5 exponential, inverted
@@ -326,8 +325,10 @@ public:
 
 			spawnDifficulty = n / d; //bias random spawnDifficulty using difficulty value
 
-			std::cout << "wave difficulty: " << spawnDifficulty << '\n';
-			std::cout << "===================" << '\n';
+			//std::cout << "wave difficulty: " << spawnDifficulty << '\n';
+			//std::cout << "===================" << '\n';
+
+			
 
 			// spawn waves from hardest->easiest
 			if (spawnDifficulty > 0.9f) 

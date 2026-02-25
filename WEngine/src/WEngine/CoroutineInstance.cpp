@@ -7,9 +7,10 @@
 namespace WE
 {
 
-	CoroutineInstance::CoroutineInstance(Entity* caller, int ID, float Duration)
+	CoroutineInstance::CoroutineInstance(Entity* caller, uint32_t callerID, int ID, float Duration)
 	{
 		CoroutineCaller = caller;
+		CallerID = callerID;
 		CoroutineID = ID;
 		CoroutineDuration = Duration;
 	}
@@ -30,7 +31,7 @@ namespace WE
 
 		float timeAlive = GetTimeAlive();
 
-		if (!CoroutineCaller)
+		if (!GetGameContext()->IsValid(CoroutineCaller, CallerID))
 			Destroy();
 		else if (timeAlive < CoroutineDuration)
 			CoroutineCaller->OnCoroutineUpdate(CoroutineID, timeAlive);
@@ -40,11 +41,5 @@ namespace WE
 			CoroutineCaller->OnCoroutineEnd(CoroutineID);
 			Destroy();
 		}
-
 	}
-
-
-
-
-
 }

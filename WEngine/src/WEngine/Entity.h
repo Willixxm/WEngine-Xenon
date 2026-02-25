@@ -29,23 +29,32 @@ namespace WE
 		Entity();
 		virtual ~Entity();
 
+		uint32_t GetID() const { return entityID; }
+	
 
 	public:
 		WPhysBodyId bodyId;
+
+	protected:
+		WVec2 initialSize = WVec2(1.f);
 	private:
 		WVec2 position = WVec2(0.f);
 		float rotationRad = 0.f;
-		WVec2 initialSize = WVec2(0.f);
 		int renderLayer = 0; 
 
 		float aliveTime = 0;
 
+		bool isValid = true;
+		uint32_t entityID = 0;
+
 	public:
-		WVec2 GetLocation();
+		WVec2 GetLocation() const { return position; }
 		virtual void SetLocation(WVec2 pos);
 
-		float GetRotation();
+		float GetRotation() const { return rotationRad; }
 		virtual void SetRotation(float newRotationRad);
+
+		WVec2 GetLinearVelocity();
 
 		WVec2 GetUpVector();
 		WVec2 GetRightVector();

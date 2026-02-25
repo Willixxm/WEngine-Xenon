@@ -34,11 +34,6 @@ namespace WE
 		gameContext->GAME_DestroyEntity(this);
 	}
 
-	WVec2 Entity::GetLocation()
-	{ 
-		return position; 
-	}
-
 	void Entity::SetLocation(WVec2 pos)
 	{
 		if (bodyId.isValid)
@@ -47,17 +42,17 @@ namespace WE
 		position = pos;
 	}
 
-	float Entity::GetRotation()
-	{
-		return rotationRad;
-	}
-
 	void Entity::SetRotation(float newRotationRad)
 	{
 		if (bodyId.isValid)
 			gameContext->PHYS_SetRotationOnPhysObj(bodyId, newRotationRad);
 
 		rotationRad = newRotationRad;
+	}
+
+	WVec2 Entity::GetLinearVelocity()
+	{
+		return gameContext->PHYS_GetLinearVelocityOnPhysObj(bodyId);
 	}
 
 	WVec2 Entity::GetUpVector()
@@ -72,7 +67,7 @@ namespace WE
 	void Entity::On_CollisionBegin(Entity* other, WVec2 point) {}
 
 	void Entity::On_SensorBeginOverlap(Entity* other) {}
-	void Entity::On_EnterOtherSensor(Entity* otherSensor) {} //UNUSED
+	void Entity::On_EnterOtherSensor(Entity* otherSensor) {} 
 	
 }
 

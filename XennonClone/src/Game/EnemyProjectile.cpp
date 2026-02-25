@@ -19,7 +19,10 @@ EnemyProjectile::EnemyProjectile()
 	renderLayer = 0;
 	animationFPS = 10.f;
 
-	lifePoints = 50.f;
+	initialSize = WVec2(2);
+
+	lifePoints = 25.f;
+	bodyDamage = 30.f; // bullet damage to player
 
 	collidesWith = WCollisionLayer::Layer1 | WCollisionLayer::Layer2;
 	maxLifeTime = 7.f;
@@ -33,10 +36,12 @@ void EnemyProjectile::Update(float deltaTime)
 	HandleEnemyLifeTime();
 }
 
+
 void EnemyProjectile::DieByPlayer()
 {
 	GetGameContext()->GAME_InstantiateEntity<Explosion2>(GetLocation(), (rand() % 618) * 0.01f, GetInitialSize() * explosionSizeMult);
-
+	
+	/*
 	if (GetLevelInstance())
 	{
 		GetLevelInstance()->AddScore(score);
@@ -44,7 +49,7 @@ void EnemyProjectile::DieByPlayer()
 
 	auto scoreText = GetGameContext()->GAME_InstantiateEntity<TextRenderer>(GetLocation() + WVec2(0, 1), 0, WVec2(0.5));
 	scoreText->SetText(std::to_string(score));
-	scoreText->DestroyWithFloat(WVec2(0, 2), 0.5);
+	scoreText->DestroyWithFloat(WVec2(0, 2), 0.5);*/
 
 	Destroy();
 }

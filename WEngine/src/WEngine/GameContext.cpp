@@ -912,6 +912,7 @@ namespace WE
 
 				if (texture.isValid)
 					break;
+					
 
 				if (textureFilePath == BMP_PLACEHOLDER)
 				{
@@ -922,8 +923,7 @@ namespace WE
 				textureFilePath = BMP_PLACEHOLDER;
 			}
 
-			AddTextureUserGL(textureFilePath, entity);
-
+			AddTextureUserGL(textureFilePath, entity);	
 
 			RenderGLEntity2D newObj;
 			newObj.entity = entity;
@@ -1120,7 +1120,6 @@ namespace WE
 		std::vector<RenderSDLEntity2D> renderSDLEntities;
 		std::vector<SurfaceInfo> LoadedSurfaces;
 
-
 		const std::string BMP_PLACEHOLDER = "graphics/bblogo.bmp";
 		const std::string PNG_PLACEHOLDER = "graphics/ProtoRed.png";
 
@@ -1222,8 +1221,10 @@ namespace WE
 				if (entityA && entityB)
 				{
 					WVec2 point = WVec2(contactPoint.x, contactPoint.y);
-					entityA->On_CollisionBegin(entityB, point);
-					entityB->On_CollisionBegin(entityA, point);
+					if (entityA->isValid)
+						entityA->On_CollisionBegin(entityB, point);
+					if (entityB->isValid)
+						entityB->On_CollisionBegin(entityA, point);
 				}
 			}
 
@@ -1239,8 +1240,13 @@ namespace WE
 				Entity* sensorEntity = static_cast<Entity*>(b2Body_GetUserData(sensorBody));
 				Entity* otherEntity = static_cast<Entity*>(b2Body_GetUserData(otherBody));
 				
-				sensorEntity->On_SensorBeginOverlap(otherEntity);
-				otherEntity->On_EnterOtherSensor(sensorEntity);
+				if (sensorEntity && otherEntity)
+				{
+					if (sensorEntity->isValid)
+						sensorEntity->On_SensorBeginOverlap(otherEntity);
+					if (otherEntity->isValid)
+						otherEntity->On_EnterOtherSensor(sensorEntity);
+				}
 			}
 		}
 
@@ -1254,20 +1260,7 @@ namespace WE
 			return b2Id;
 		}
 
-		WVec2 GetObjPos(WPhysBodyId id)
-		{
-			b2Vec2 position = b2Body_GetPosition(GetB2IdFromWId(id));
-
-			return WVec2(position.x, position.y);
-		}
-
-		float GetObjRotationRad(WPhysBodyId id)
-		{
-			b2Rot rotation = b2Body_GetRotation(GetB2IdFromWId(id));
-
-			return atan2(rotation.s, rotation.c);
-			//return acos(rotation.c) * (signbit(rotation.s) ? -1 : 1);
-		}
+	
 
 		void SetObjPos(WPhysBodyId id, WVec2 pos)
 		{
@@ -1278,6 +1271,13 @@ namespace WE
 			b2Rot rotation = b2Body_GetRotation(b2Id);
 
 			b2Body_SetTransform(b2Id, position, rotation);
+		}
+
+		WVec2 GetObjPos(WPhysBodyId id)
+		{
+			b2Vec2 position = b2Body_GetPosition(GetB2IdFromWId(id));
+
+			return WVec2(position.x, position.y);
 		}
 
 		void SetObjRotationRad(WPhysBodyId id, float rotationRad)
@@ -1291,9 +1291,23 @@ namespace WE
 			b2Body_SetTransform(b2Id, position, rotation);
 		}
 
+		float GetObjRotationRad(WPhysBodyId id)
+		{
+			b2Rot rotation = b2Body_GetRotation(GetB2IdFromWId(id));
+
+			return atan2(rotation.s, rotation.c);
+			//return acos(rotation.c) * (signbit(rotation.s) ? -1 : 1);
+		}
+
 		void SetObjLinearVelocity(WPhysBodyId id, WVec2 vel)
 		{
 			b2Body_SetLinearVelocity(GetB2IdFromWId(id), { vel.x, vel.y });
+		}
+
+		WVec2 GetObjLinearVelocity(WPhysBodyId id)
+		{
+			b2Vec2 vel = b2Body_GetLinearVelocity(GetB2IdFromWId(id));
+			return WVec2(vel.x, vel.y);
 		}
 
 		void CreateWorld()
@@ -1312,7 +1326,7 @@ namespace WE
 			b2World_SetGravity(worldId, gravity);
 		}
 
-		WPhysBodyId CreateObj(Entity* entity, WBodyType bodyType, WVec2 boxSize, uint32_t collisionLayer, uint32_t collidesWith, bool isSensor, float density)
+		WPhysBodyId CreateObj(Entity* entity, WBodyType bodyType, WVec2 boxSize, uint32_t collisionLayer, uint32_t collidesWith, bool isSensor, float density, bool isCircle)
 		{
 			b2BodyDef bodyDef = b2DefaultBodyDef();
 			bodyDef.type = (b2BodyType)bodyType;
@@ -1332,7 +1346,11 @@ namespace WE
 
 			if (boxSize.x || boxSize.y)
 			{
-				b2Polygon bodyBox = b2MakeBox(boxSize.x / 2, boxSize.y / 2);
+				b2Polygon bodyCollisionShape;
+				if (!isCircle)
+					bodyCollisionShape = b2MakeBox(boxSize.x / 2, boxSize.y / 2);
+				else
+					bodyCollisionShape = b2MakeRoundedBox(boxSize.x / 2, boxSize.y / 2, boxSize.x / 2);
 				b2ShapeDef boxShapeDef = b2DefaultShapeDef();
 				boxShapeDef.density = density;
 				if (isSensor)
@@ -1344,7 +1362,7 @@ namespace WE
 
 				boxShapeDef.friction = 0.1f;
 
-				b2CreatePolygonShape(bodyId, &boxShapeDef, &bodyBox);
+				b2CreatePolygonShape(bodyId, &boxShapeDef, &bodyCollisionShape);
 			}
 
 			return WPhysBodyId(bodyId.index1, bodyId.world0, bodyId.generation);
@@ -1401,7 +1419,8 @@ namespace WE
 	{
 		for (size_t i = 0; i < instancedEntities.size(); ++i)
 		{
-			instancedEntities[i]->Update(deltaTime);
+			if (instancedEntities[i]->isValid)
+				instancedEntities[i]->Update(deltaTime);
 		}
 		if (game->stopGame)
 			SYSTEM_DestroyAllEntities();
@@ -1433,11 +1452,11 @@ namespace WE
 	{ 
 		PHYS_AddPhysComponentToEntity(entity, bodyType, entity->GetInitialSize(), 0, 0, false, 1.0f); 
 	}
-	void GameContext::PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType, WVec2 sizeOverride, uint32_t collisionLayer, uint32_t collidesWith, bool isSensor, float density)
+	void GameContext::PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType, WVec2 sizeOverride, uint32_t collisionLayer, uint32_t collidesWith, bool isSensor, float density, bool isCircle)
 	{
 		if (!entity->bodyId.isValid)
 		{
-			entity->bodyId = physicsPImpl->CreateObj(entity, bodyType, sizeOverride, collisionLayer, collidesWith, isSensor, density);
+			entity->bodyId = physicsPImpl->CreateObj(entity, bodyType, sizeOverride, collisionLayer, collidesWith, isSensor, density, isCircle);
 		}
 	}
 
@@ -1451,11 +1470,6 @@ namespace WE
 		else
 			return physicsPImpl->GetObjPos(id);
 	}
-	void GameContext::PHYS_SetLinearVelocityOnPhysObj(WPhysBodyId id, WVec2 vel)
-	{
-		assert(id.isValid, "Tried accessing invalid physics obj!");
-		physicsPImpl->SetObjLinearVelocity(id, vel);
-	}
 	void GameContext::PHYS_SetLocationOnPhysObj(WPhysBodyId id, WVec2 pos)
 	{
 		if (id.isValid)
@@ -1463,6 +1477,20 @@ namespace WE
 		else
 			std::cout << "Tried accessing invalid physics obj! \n";
 	}
+
+	void GameContext::PHYS_SetLinearVelocityOnPhysObj(WPhysBodyId id, WVec2 vel)
+	{
+		assert(id.isValid, "Tried accessing invalid physics obj!");
+		physicsPImpl->SetObjLinearVelocity(id, vel);
+	}
+	WVec2 GameContext::PHYS_GetLinearVelocityOnPhysObj(WPhysBodyId id)
+	{
+		if (id.isValid)
+			return physicsPImpl->GetObjLinearVelocity(id);
+		else
+			return WVec2(0);
+	}
+	
 	void GameContext::PHYS_SetRotationOnPhysObj(WPhysBodyId id, float rotationRad)
 	{
 		if (id.isValid)
@@ -1470,6 +1498,7 @@ namespace WE
 		else
 			std::cout << "Tried accessing invalid physics obj! \n";
 	}
+
 	void GameContext::PHYS_SetWorldGravity(WVec2 vec)
 	{
 		physicsPImpl->SetWorldGravity(vec);
@@ -1518,50 +1547,97 @@ namespace WE
 
 	void GameContext::GAME_StartCoroutine(Entity* caller, int ID, float duration)
 	{
-		CoroutineInstance* corInstance = new CoroutineInstance(caller, ID, duration);
-		On_InstantiateEntity(corInstance, WVec2(0), 0.f, WVec2(0));
+		CoroutineInstance* corInstance = new CoroutineInstance(caller, caller->GetID(), ID, duration);
+		On_InstantiateEntity(corInstance, WVec2(0), 0.f, WVec2(0), false);
+
+		for (Entity* e : instancedEntities_SearchPriority)
+			if (e == caller)
+				return;
 	}
-	void GameContext::On_InstantiateEntity(Entity* entity, WVec2 pos, float rotation,  WVec2 size)
+	void GameContext::On_InstantiateEntity(Entity* entity, WVec2 pos, float rotation,  WVec2 size, bool hasSearchPriority)
 	{
+		++currentEntityID;
+		if (currentEntityID == 0)
+			++currentEntityID;
+
+		entity->entityID = currentEntityID;
 		entity->gameContext = this;
 		entity->SetLocation(pos);
 		entity->SetRotation(rotation);
 		entity->initialSize = size;
 
 		instancedEntities.push_back(entity);
+		if (hasSearchPriority)
+			instancedEntities_SearchPriority.push_back(entity);
 
 		entity->Start();
 	}
+
+	bool GameContext::IsValid(const Entity* entity, uint32_t entityID)
+	{
+		if (entity == nullptr || entityID == 0)
+			return false;
+		// check priority list first 
+		for (Entity* e : instancedEntities_SearchPriority)
+			if (e == entity)
+			{
+				return (e->isValid && e->entityID == entityID);
+			}
+		// wasn't found in priority list
+		for (Entity* e : instancedEntities)
+			if (e == entity)
+				if (e->isValid && e->entityID == entityID)
+				{
+					instancedEntities_SearchPriority.push_back(e); // adding this entity to priority list, for faster lookup in the future if needed
+					return true;
+				}
+		return false;
+	}
 	
 	void GameContext::GAME_DestroyEntity(Entity* entity)
-	{
+	{	
 		//register for destruction at the end of the game loop
+		for (auto e : entitiesToDestroyAfterUpdate)
+			if (e == entity)
+				return;
+
+		entity->isValid = false;
 		entitiesToDestroyAfterUpdate.push_back(entity);
 	}
 	void GameContext::SYSTEM_DestroyAllEntities_QueuedForDestruction()
 	{
-		for (auto entity : entitiesToDestroyAfterUpdate)
+		for (size_t i = 0; i < instancedEntities.size(); ++i)
 		{
-			for (size_t i = 0; i < instancedEntities.size(); ++i)
+			for (size_t e = 0; e < entitiesToDestroyAfterUpdate.size(); ++e)
 			{
-				if (instancedEntities[i] != entity)
+				if (instancedEntities[i] != entitiesToDestroyAfterUpdate[e])
 					continue;
 
 				if (instancedEntities[i]->bodyId.isValid)
 					physicsPImpl->DestroyObj(instancedEntities[i]->bodyId);
-
 				windowPImpl->RemoveFromRender(instancedEntities[i]);
 
+				for (size_t p = 0; p < instancedEntities_SearchPriority.size(); ++p) {
+					instancedEntities_SearchPriority.erase(instancedEntities_SearchPriority.begin() + p);
+					--p;
+				}
+
 				delete instancedEntities[i];
-				instancedEntities[i] = nullptr;
+
+				entitiesToDestroyAfterUpdate.erase(entitiesToDestroyAfterUpdate.begin() + e);
+				--e;
+				
 				instancedEntities.erase(instancedEntities.begin() + i);
-				break;
+				--i;
+
 			}
 		}
-		entitiesToDestroyAfterUpdate.clear();
 	}
 	void GameContext::SYSTEM_DestroyAllEntities()
 	{
+		instancedEntities_SearchPriority.clear();
+		entitiesToDestroyAfterUpdate.clear();
+
 		for (size_t i = 0; i < instancedEntities.size(); ++i)
 		{
 			if (instancedEntities[i]->bodyId.isValid)
@@ -1570,8 +1646,8 @@ namespace WE
 			windowPImpl->RemoveFromRender(instancedEntities[i]);
 
 			delete instancedEntities[i];
-			instancedEntities[i] = nullptr;
 			instancedEntities.erase(instancedEntities.begin() + i);
+			--i;
 		}
 	}
 

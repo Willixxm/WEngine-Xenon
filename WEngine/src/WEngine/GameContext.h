@@ -6,7 +6,7 @@
 #include <string>
 #include <type_traits>
 #include "WMath.h"
-
+#include <optional>
 
 namespace WE
 {
@@ -114,18 +114,32 @@ namespace WE
 
 
 	private:
+		uint32_t currentEntityID = 0;
 		std::vector<Entity*> instancedEntities;
+		std::vector<Entity*> instancedEntities_SearchPriority;
 		std::vector<Entity*> entitiesToDestroyAfterUpdate;
 
 	public:
 		template< class T >
-		T* GAME_InstantiateEntity(WVec2 pos, float rotation, WVec2 size)
+		T* GAME_InstantiateEntity(WVec2 pos, float rotation, WVec2 sizeOverride, bool hasSearchPriority = false)
 		{
 			static_assert(std::is_base_of<Entity, T>::value, "T must be derived from Entity");
 			
 			T* newEntity = new T();
 
-			On_InstantiateEntity(newEntity, pos, rotation, size);
+			On_InstantiateEntity(newEntity, pos, rotation, sizeOverride, hasSearchPriority);
+
+			return newEntity;
+		}
+
+		template< class T >
+		T* GAME_InstantiateEntity(WVec2 pos, float rotation, bool hasSearchPriority = false)
+		{
+			static_assert(std::is_base_of<Entity, T>::value, "T must be derived from Entity");
+
+			T* newEntity = new T();
+
+			On_InstantiateEntity(newEntity, pos, rotation, newEntity->GetInitialSize(), hasSearchPriority);
 
 			return newEntity;
 		}
@@ -133,21 +147,22 @@ namespace WE
 		void GAME_StartCoroutine(Entity* caller, int ID, float duration);
 
 	private:
-		void On_InstantiateEntity(Entity*, WVec2 pos, float rotation, WVec2 size);
+		void On_InstantiateEntity(Entity*, WVec2 pos, float rotation, WVec2 size, bool hasSearchPriority);
 		void SYSTEM_DestroyAllEntities();
 		void SYSTEM_DestroyAllEntities_QueuedForDestruction();
 
 	public:
 		void GAME_DestroyEntity(Entity*);
-
+		bool IsValid(const Entity* entity, uint32_t entityID);
 
 		void PHYS_SetWorldGravity(WVec2);
 
-		void PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType, WVec2 sizeOverride, uint32_t collisionLayer, uint32_t collidesWith, bool isSensor, float density);
+		void PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType, WVec2 sizeOverride, uint32_t collisionLayer, uint32_t collidesWith, bool isSensor, float density, bool isCircle = false);
 		void PHYS_AddPhysComponentToEntity(Entity* entity, WBodyType bodyType); 
 		void PHYS_SetLocationOnPhysObj(WPhysBodyId id, WVec2 pos);
 		void PHYS_SetRotationOnPhysObj(WPhysBodyId id, float rotationRad);
 		void PHYS_SetLinearVelocityOnPhysObj(WPhysBodyId id, WVec2 vel);
+		WVec2 PHYS_GetLinearVelocityOnPhysObj(WPhysBodyId id);
 
 		WVec2 SYSTEM_GetLocationOfPhysObj(WPhysBodyId id);
 

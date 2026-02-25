@@ -14,6 +14,8 @@ Asteroid::Asteroid()
 	lifePoints = 200.f;
 	isInvincible = false;
 
+	maxLifeTime = 60.f;
+
 	moveSpeed = 0.f;
 }
 
@@ -21,7 +23,7 @@ void Asteroid::Start()
 {
 	Pawn::Start();
 
-	GetGameContext()->PHYS_AddPhysComponentToEntity(this, WE::WBodyType::dynamicBody, GetInitialSize() * hitboxSizeMult, collisionLayer, collidesWith, isSensor, 3.f);
+	GetGameContext()->PHYS_AddPhysComponentToEntity(this, WE::WBodyType::dynamicBody, GetInitialSize() * hitboxSizeMult, collisionLayer, collidesWith, isSensor, 20.f, true);
 	GetGameContext()->RENDER_AddRenderComponent(this, filePath, hTiles, vTiles, tileOffset, tileSpan, renderLayer);
 	GetGameContext()->RENDER_SetAnimationParameters(this, true, animationFPS);
 }
@@ -30,5 +32,6 @@ void Asteroid::Update(float deltaTime)
 {
 	Enemy::Update(deltaTime);
 
-	Move(moveVector * moveSpeed);
+	if (GetTimeAlive() < 2.f)
+		Move(moveVector * moveSpeed);
 }

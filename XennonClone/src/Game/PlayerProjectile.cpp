@@ -11,10 +11,10 @@ void PlayerProjectile::Start()
 {
 	WE::Entity::Start();
 
-	GetGameContext()->PHYS_AddPhysComponentToEntity(this, WE::WBodyType::kinematicBody, GetInitialSize(), WCollisionLayer::Layer2, WCollisionLayer::Layer3, false, 0.05f);
+	GetGameContext()->PHYS_AddPhysComponentToEntity(this, WE::WBodyType::dynamicBody, GetInitialSize(), WCollisionLayer::Layer2, WCollisionLayer::Layer3, false, 1.f);
 	GetGameContext()->PHYS_SetLinearVelocityOnPhysObj(this->bodyId, GetUpVector() * projectileSpeed);
-	GetGameContext()->RENDER_AddRenderComponent(this, "graphics/missile.bmp", 2, 3, 0, 2, -1);
-	GetGameContext()->RENDER_SetAnimationParameters(this, true, 5.f);
+	GetGameContext()->RENDER_AddRenderComponent(this, filePath, hTiles, vTiles, tileOffset, tileSpan, layer);
+	GetGameContext()->RENDER_SetAnimationParameters(this, true, animFps);
 
 
 }
@@ -28,9 +28,8 @@ void PlayerProjectile::Update(float deltaTime)
 	{
 		Destroy();
 	}
-		
-
 }
+
 
 void PlayerProjectile::On_CollisionBegin(Entity* other, WVec2 hitLocation)
 {
@@ -41,8 +40,8 @@ void PlayerProjectile::On_CollisionBegin(Entity* other, WVec2 hitLocation)
 	{
 		hitEnemy->DealDamage(this, projectileDmg);
 
-		if (!hitEnemy->GetIsInvincible())
-			GetGameContext()->GAME_InstantiateEntity<Explosion2>(hitLocation, -6.28f / 3, WE::WVec2(2));
+		//if (!hitEnemy->GetIsInvincible())
+			OnDestroy(hitLocation);
 	}
 
 	Destroy();
@@ -57,9 +56,14 @@ void PlayerProjectile::On_EnterOtherSensor(Entity* otherSensor)
 	{
 		hitEnemy->DealDamage(this, projectileDmg);
 
-		if (!hitEnemy->GetIsInvincible())
-			GetGameContext()->GAME_InstantiateEntity<Explosion2>(GetLocation(), -6.28f / 3, WE::WVec2(2));
+		//if (!hitEnemy->GetIsInvincible())
+			OnDestroy(GetLocation());
 	}
 
 	Destroy();
+}
+
+void PlayerProjectile::OnDestroy(WVec2 location)
+{
+	GetGameContext()->GAME_InstantiateEntity<Explosion2>(location, -6.28f / 3, WE::WVec2(2));
 }

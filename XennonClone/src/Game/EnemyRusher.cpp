@@ -1,4 +1,6 @@
 #include "EnemyRusher.h"
+#include "PowerUpWeapon.h"
+//#include "PowerUpShield.h"
 
 EnemyRusher::EnemyRusher()
 {
@@ -11,13 +13,17 @@ EnemyRusher::EnemyRusher()
 	renderLayer = 0;
 	animationFPS = 15.f;
 
+	initialSize = WVec2(4);
+
 	explosionSizeMult = 1.0f;
+
+	bodyDamage = 50.f;
 
 	lifePoints = 50.f;
 	moveSpeed = 5.f;
 	moveVector = WVec2(0, -1);
 	
-	maxLifeTime = 15.f;
+	maxLifeTime = 20.f;
 
 	score = 10000;
 }
@@ -26,5 +32,16 @@ void EnemyRusher::Update(float deltaTime)
 {
 	Enemy::Update(deltaTime);
 
-	Move(WVec2(-3.3f, moveSpeed));	
+	Move(moveVector * moveSpeed + WVec2(-3.3f, 0));
+}
+
+void EnemyRusher::DieByPlayer()
+{
+	short unsigned int random = (rand() % 100 + 1);
+	if (random > 66)
+		GetGameContext()->GAME_InstantiateEntity<PowerUpWeapon>(GetLocation(), 0.f);
+	//else if (random > 80)
+		//GetGameContext()->GAME_InstantiateEntity<PowerUpShield>(GetLocation(), 0.f);
+
+	Enemy::DieByPlayer();
 }

@@ -54,6 +54,7 @@ protected:
 
 	bool isSensor = true;
 
+	bool hasDied = false;
 	bool isInvincible = false;
 	float lifePoints = 100.f;
 	float bodyDamage = 50.f;
@@ -68,6 +69,7 @@ public:
 	bool canShoot = false;
 
 	float maxLifeTime = 40.0f;
+	float extraLifeTime = 0; //increased when entity is interacted with
 
 protected:
 	uint32_t collisionLayer = WCollisionLayer::Layer3;

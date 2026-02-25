@@ -16,12 +16,13 @@ private:
 	int deathCountInGroup = 0;
 
 	EnemyDrone* nextDroneInGroup = nullptr;
+	uint32_t nextDroneInGroupID = 0;
 	EnemyDrone* previousDroneInGroup = nullptr;
+	uint32_t previousDroneInGroupID = 0;
 	
 	int initScore;
 
 	friend class DroneSpawner;
 	friend class EnemyDrone;
-
 };
 

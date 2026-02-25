@@ -41,8 +41,9 @@ void Enemy::DealDamage(Entity* dealer, float damage)
 
 	lifePoints -= damage;
 
-	if (lifePoints <= 0)
+	if (lifePoints <= 0 && !hasDied)
 	{
+		hasDied = true;
 		lifePoints = 0;
 		DieByPlayer();
 	}
@@ -57,7 +58,8 @@ void Enemy::DieByPlayer()
 		GetLevelInstance()->AddScore(score);
 	}
 
-	auto scoreText = GetGameContext()->GAME_InstantiateEntity<TextRenderer>(GetLocation() + WVec2(0, 1), 0, WVec2(0.5));
+	auto scoreText = GetGameContext()->GAME_InstantiateEntity<TextRenderer>(GetLocation() + WVec2(0, 1), 0, WVec2(0.6));
+	scoreText->SetFont(false);
 	scoreText->SetText(std::to_string(score));
 	scoreText->DestroyWithFloat(WVec2(0, 2), 0.5);
 
@@ -71,6 +73,8 @@ void Enemy::On_SensorBeginOverlap(Entity* other)
 	if (!other)
 		return;
 
+	extraLifeTime = GetTimeAlive();
+	
 	SpaceShip* hitPlayer = dynamic_cast<SpaceShip*>(other);
 	if (hitPlayer)
 	{
@@ -86,6 +90,8 @@ void Enemy::On_CollisionBegin(Entity* other, WVec2 point)
 	if (!other)
 		return;
 
+	extraLifeTime = GetTimeAlive();
+	
 	SpaceShip* hitPlayer = dynamic_cast<SpaceShip*>(other);
 	if (hitPlayer)
 	{
@@ -112,7 +118,7 @@ void Enemy::Fire()
 
 void Enemy::HandleEnemyLifeTime()
 {
-	if (GetTimeAlive() > maxLifeTime)
+	if (GetTimeAlive() > maxLifeTime + extraLifeTime)
 	{
 		Destroy();
 	}

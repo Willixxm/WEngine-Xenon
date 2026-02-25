@@ -14,6 +14,10 @@ public:
 		renderLayer = 0;
 		animationFPS = 9.f;
 
+		initialSize = WVec2(3);
+
+		bodyDamage = 60.f;
+
 		lifePoints = 9999.f;
 		isInvincible = true;
 

@@ -14,9 +14,15 @@ public:
 		renderLayer = 0;
 		animationFPS = 9.f;
 
+		initialSize = WVec2(2);
+
+
+		bodyDamage = 35.f;
 		lifePoints = 25.f;
 
 		moveSpeed = 0.f;
+
+		isSensor = false;
 
 		score = 5000;
 	}

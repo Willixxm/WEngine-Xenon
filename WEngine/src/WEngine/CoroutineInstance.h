@@ -7,7 +7,7 @@ namespace WE
 	class CoroutineInstance : public Entity
 	{
 	public:
-		CoroutineInstance(Entity* caller, int ID, float Duration);
+		CoroutineInstance(Entity* caller, uint32_t callerID, int coroutineID, float Duration);
 
 		~CoroutineInstance();
 
@@ -18,7 +18,8 @@ namespace WE
 	private:
 		float CoroutineDuration = 0;
 		int CoroutineID;
-		Entity* CoroutineCaller;
+		Entity* CoroutineCaller = nullptr;
+		uint32_t CallerID = 0;
 
 
 

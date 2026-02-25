@@ -4,6 +4,7 @@
 #include "XennonLevel.h"
 #include <cmath>
 
+#include "PowerUpCompanion.h"
 
 
 
@@ -21,8 +22,12 @@ EnemyLoner::EnemyLoner()
 	renderLayer = 0;
 	animationFPS = 5.f;
 
+	initialSize = WVec2(4);
+
 	lifePoints = 75.f;
 	maxLifeTime = 25.0f;
+
+	bodyDamage = 50.f;
 
 	canShoot = true;
 	shotCooldownTime = 2.0f;
@@ -57,13 +62,20 @@ void EnemyLoner::Fire()
 	if (!GetLevelInstance())
 		return;
 
-	if (GetLocation().x > -30 && GetLocation().x < 30)
+	if (GetLocation().x > -40 && GetLocation().x < 40)
 	{
 		auto playerDirection = GetLevelInstance()->GetPlayer()->GetLocation() - GetLocation();
-		EnemyProjectile* projectile = GetGameContext()->GAME_InstantiateEntity<EnemyProjectile>(GetLocation() + WVec2(0, -1), GetRotation(), WVec2(2));
+		EnemyProjectile* projectile = GetGameContext()->GAME_InstantiateEntity<EnemyProjectile>(GetLocation() + WVec2(0, -1), GetRotation());
 		GetGameContext()->PHYS_SetLinearVelocityOnPhysObj(projectile->bodyId, playerDirection.normalized() * projectileSpeed);
 		projectile->SetLevelInstance(GetLevelInstance());
 	}
 }
 
+void EnemyLoner::DieByPlayer()
+{
+	if (rand()%100 + 1 > 66)
+		GetGameContext()->GAME_InstantiateEntity<PowerUpCompanion>(GetLocation(), -3.14/2.f);
+
+	Enemy::DieByPlayer();
+}
 

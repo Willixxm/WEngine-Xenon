@@ -16,7 +16,12 @@ public:
 		renderLayer = 0;
 		animationFPS = 9.f;
 
+		initialSize = WVec2(3);
+
+		bodyDamage = 45.f;
 		lifePoints = 25.f;
+
+		isSensor = false;
 
 		moveSpeed = 0.f;
 
@@ -26,7 +31,7 @@ public:
 	void DieByPlayer() override
 	{
 		//spawn 3 small rocks
-		WVec2 initMoveVector = moveVector * moveSpeed;
+		WVec2 initMoveVector = GetLinearVelocity();
 
 		for (int i = 0; i < 3; ++i)
 		{
@@ -45,7 +50,7 @@ public:
 			moveVector *= asteroidSpeed * randomSpeedMult;
 			moveVector += initMoveVector; // add original asteroid speed to new asteroid to keep momentum
 
-			auto enemy = GetGameContext()->GAME_InstantiateEntity<AsteroidStoneSmall>(GetLocation(), GetRotation() + (6.28 / 3) * i, WE::WVec2(2.f));
+			auto enemy = GetGameContext()->GAME_InstantiateEntity<AsteroidStoneSmall>(GetLocation(), GetRotation() + (6.28 / 3) * i);
 
 			if (!enemy)
 				return;

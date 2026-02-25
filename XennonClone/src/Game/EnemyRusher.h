@@ -8,5 +8,6 @@ public:
 	EnemyRusher();
 
 	void Update(float deltaTime) override;
+	void DieByPlayer() override;
 };
 

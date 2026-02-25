@@ -9,7 +9,7 @@ public:
 	AsteroidStoneBig()
 	{
 		filePath = "graphics/SAster96.bmp";
-		hitboxSizeMult = 0.8f;
+		hitboxSizeMult = 0.6f;
 		hTiles = 5;
 		vTiles = 5;
 		tileOffset = 0;
@@ -17,7 +17,12 @@ public:
 		renderLayer = 0;
 		animationFPS = 9.f;
 
+		initialSize = WVec2(5);
+
+		bodyDamage = 60.f;
 		lifePoints = 100.f;
+
+		isSensor = false;
 
 		moveSpeed = 0.f;
 
@@ -27,7 +32,7 @@ public:
 	void DieByPlayer() override
 	{
 		//spawn 3 medium rocks
-		WVec2 initMoveVector = moveVector * moveSpeed;
+		WVec2 initMoveVector = GetLinearVelocity();
 
 		for (int i = 0; i < 3; ++i)
 		{
@@ -46,7 +51,7 @@ public:
 			moveVector *= asteroidSpeed * randomSpeedMult;
 			moveVector += initMoveVector; // add original asteroid speed to new asteroid to keep momentum
 
-			auto enemy = GetGameContext()->GAME_InstantiateEntity<AsteroidStoneMedium>(GetLocation(), GetRotation() + (6.28 / 3) * i, WE::WVec2(3.f));
+			auto enemy = GetGameContext()->GAME_InstantiateEntity<AsteroidStoneMedium>(GetLocation(), GetRotation() + (6.28 / 3) * i);
 
 			if (!enemy)
 				return;

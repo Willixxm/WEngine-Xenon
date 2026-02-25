@@ -27,6 +27,7 @@ private:
 
 	int spawnedEnemies = 0;
 	EnemyDrone* lastSpawnedEnemy = nullptr;
+	uint32_t lastSpawnedEnemyID = 0;
 
 private:
 	enum CoroutineID : int

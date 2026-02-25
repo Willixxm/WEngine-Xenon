@@ -93,6 +93,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Game\Companion.cpp" />
+    <ClCompile Include="src\Game\PowerUp.cpp" />
     <ClCompile Include="src\Game\Asteroid.cpp" />
     <ClCompile Include="src\Game\EnemyDrone.cpp" />
     <ClCompile Include="src\Game\DroneSpawner.cpp" />
@@ -110,6 +112,12 @@
     <ClCompile Include="src\Game\TextRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Game\PlayerProjectile2.h" />
+    <ClInclude Include="src\Game\Companion.h" />
+    <ClInclude Include="src\Game\PlayerProjectile3.h" />
+    <ClInclude Include="src\Game\PowerUpCompanion.h" />
+    <ClInclude Include="src\Game\PowerUpShield.h" />
+    <ClInclude Include="src\Game\PowerUp.h" />
     <ClInclude Include="src\Game\Asteroid.h" />
     <ClInclude Include="src\Game\AsteroidMetalBig.h" />
     <ClInclude Include="src\Game\AsteroidMetalMedium.h" />
@@ -128,6 +136,7 @@
     <ClInclude Include="src\Game\Enemy.h" />
     <ClInclude Include="src\Game\PlayerProjectile.h" />
     <ClInclude Include="src\Game\BackGround.h" />
+    <ClInclude Include="src\Game\PowerUpWeapon.h" />
     <ClInclude Include="src\Game\SpaceShip.h" />
     <ClInclude Include="src\Game\XennonLevel.h" />
     <ClInclude Include="src\Game\TextRenderer.h" />
