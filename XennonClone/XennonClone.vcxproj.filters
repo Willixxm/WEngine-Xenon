@@ -66,6 +66,9 @@
     <ClCompile Include="src\Game\Companion.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Game\LifeCountDisplay.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Game\SpaceShip.h">
@@ -150,6 +153,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Game\PlayerProjectile3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Game\LifeCountDisplay.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

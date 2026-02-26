@@ -64,7 +64,10 @@ void EnemyLoner::Fire()
 
 	if (GetLocation().x > -40 && GetLocation().x < 40)
 	{
-		auto playerDirection = GetLevelInstance()->GetPlayer()->GetLocation() - GetLocation();
+		Entity* player = GetLevelInstance()->GetPlayer();
+		if (player == nullptr)
+			return;
+		auto playerDirection = player->GetLocation() - GetLocation();
 		EnemyProjectile* projectile = GetGameContext()->GAME_InstantiateEntity<EnemyProjectile>(GetLocation() + WVec2(0, -1), GetRotation());
 		GetGameContext()->PHYS_SetLinearVelocityOnPhysObj(projectile->bodyId, playerDirection.normalized() * projectileSpeed);
 		projectile->SetLevelInstance(GetLevelInstance());

@@ -12,6 +12,7 @@
 
 #include "Explosion.h"
 #include "TextRenderer.h"
+#include "LifeCountDisplay.h"
 #include "PowerUp.h"
 #include "Companion.h"
 
@@ -131,13 +132,16 @@ void SpaceShip::DealDamage(Entity* dealer, float damage)
 				companions[i].id = 0;
 			}
 			
-			if (canRespawn)
+			if (extraLives > 0)
 			{
 				GetGameContext()->GAME_StartCoroutine(this, CoroutineID::invincibleAfterDeath, invincibilityDuration);
 				GetGameContext()->RENDER_SetAnimationTileParameters(this, 7, 7);
 				GetGameContext()->GAME_InstantiateEntity<Explosion>(GetLocation(), 0.f, GetInitialSize() * 2.f);
 				isInvincible = true;
 				canShoot = false;
+				--extraLives;
+				if (GetGameContext()->IsValid(extraLifeCounter, extraLifeCounterID))
+					extraLifeCounter->SetExtraLifeCount(extraLives);
 			}
 			else
 			{

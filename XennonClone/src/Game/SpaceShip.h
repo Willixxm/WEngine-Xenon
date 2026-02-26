@@ -5,6 +5,7 @@
 #include <string>
 
 class TextRenderer;
+class LifeCountDisplay;
 class Companion;
 class PowerUp;
 class WE::WVec2;
@@ -67,12 +68,16 @@ protected:
 
 	bool isInvincible = false;
 	float invincibilityDuration = 3.0f;
-	bool canRespawn = true;
+	//bool canRespawn = false;
+	int extraLives = 3;
 
 	TextRenderer* inputVectorText = nullptr;
 
 	Entity* healthBar = nullptr;
 	uint32_t healthBarID = 0;
+
+	LifeCountDisplay* extraLifeCounter = nullptr;
+	uint32_t extraLifeCounterID = 0;
 
 private:
 	void HandleShoot(float deltaTime);

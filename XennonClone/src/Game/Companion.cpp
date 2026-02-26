@@ -22,7 +22,7 @@ Companion::Companion()
 	maxHealth = 50.f;
 	currentHealth = maxHealth;
 
-	canRespawn = false;
+	extraLives = 0;
 
 }
 

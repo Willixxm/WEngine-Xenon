@@ -93,6 +93,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Game\LifeCountDisplay.cpp" />
     <ClCompile Include="src\Game\Companion.cpp" />
     <ClCompile Include="src\Game\PowerUp.cpp" />
     <ClCompile Include="src\Game\Asteroid.cpp" />
@@ -112,6 +113,7 @@
     <ClCompile Include="src\Game\TextRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Game\LifeCountDisplay.h" />
     <ClInclude Include="src\Game\PlayerProjectile2.h" />
     <ClInclude Include="src\Game\Companion.h" />
     <ClInclude Include="src\Game\PlayerProjectile3.h" />

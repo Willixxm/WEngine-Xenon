@@ -4,6 +4,7 @@
 #include "WEngine/GameContext.h"
 
 #include "SpaceShip.h"
+#include "LifeCountDisplay.h"
 #include "TextRenderer.h"
 #include "BackGround.h"
 #include "ParallaxBackground.h"
@@ -43,6 +44,7 @@ public:
 		GetGameContext()->RENDER_SetOrthoCameraSize(camSize);
 
 		player = GetGameContext()->GAME_InstantiateEntity<SpaceShip>(WE::WVec2(-20, 0), 2 * 3.14159265 * -1 / 4, WE::WVec2(4));
+		playerID = player->GetID();
 
 		// GAME BORDERS
 		Entity* topBorder = GetGameContext()->GAME_InstantiateEntity<Entity>(WE::WVec2(0, 19), 0, WE::WVec2(100, 2));
@@ -111,6 +113,18 @@ public:
 		}
 		// ==========
 
+		// ==========
+		// Extra life Display
+		LifeCountDisplay* extraLifeDisplay = GetGameContext()->GAME_InstantiateEntity<LifeCountDisplay>(
+			WE::WVec2(aspRatio * (-camSize / 2) + safeBorder + 1.5, (-camSize / 2) + safeBorder + 4)
+			, 0.f, WE::WVec2(2));
+		if (player)
+		{
+			player->extraLifeCounter = extraLifeDisplay;
+			player->extraLifeCounterID = extraLifeDisplay->GetID();
+			extraLifeDisplay->SetExtraLifeCount(player->extraLives);
+		}
+
 		BackGround* background = GetGameContext()->GAME_InstantiateEntity<BackGround>(WE::WVec2(0, 0), 0.f, WE::WVec2(0));
 		
 		int parallaxBackgroundScale = 2; //size of each tile
@@ -121,9 +135,16 @@ public:
 	}
 
 public:
-	Entity* GetPlayer() const { return player; }
+	Entity* GetPlayer()
+	{
+		if (GetGameContext()->IsValid(player, playerID))
+			return player;
+		else
+			return nullptr;
+	}
 private:
 	SpaceShip* player = nullptr;
+	uint32_t playerID = 0;
 	TextRenderer* scoreText = nullptr;
 	unsigned int playerScore;
 
