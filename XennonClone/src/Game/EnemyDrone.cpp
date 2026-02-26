@@ -50,8 +50,8 @@ void EnemyDrone::DieByPlayer()
 		GetGameContext()->GAME_InstantiateEntity<PowerUpShield>(GetLocation(), 0.f);
 	else if (deathCountInGroup + 1 == 10)
 		GetGameContext()->GAME_InstantiateEntity<PowerUpWeapon>(GetLocation(), 0.f);
-	else if (deathCountInGroup + 1 == 12)
-		GetGameContext()->GAME_InstantiateEntity<PowerUpCompanion>(GetLocation(), -3.141592/2);
+	//else if (deathCountInGroup + 1 == 12)
+		//GetGameContext()->GAME_InstantiateEntity<PowerUpCompanion>(GetLocation(), -3.141592/2);
 
 	Enemy::DieByPlayer();
 }

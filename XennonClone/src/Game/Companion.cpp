@@ -52,6 +52,12 @@ void Companion::SetPlayer(SpaceShip* player_, uint32_t playerID_, int compSlot)
 		positionOffset = WVec2(0, 5);
 		break;
 	}
+	GetGameContext()->GAME_StartCoroutine(this, CoroutineID::moveToPlayer, moveToPlayerDuration);
+	isMovingToPlayer = true;
+	canShoot = false;
+	isInvincible = true;
+	initLocation = GetLocation();
+	randOscillationSpeedMult += ((rand() % 20 + 1) / 20.f) * 0.5f - 0.25f;
 
 }
 
@@ -62,7 +68,9 @@ void Companion::HandleMovement(float deltaTime)
 	if (!player->HasThisCompanion(this, GetID(), companionSlot))
 		Destroy();
 
-	SetLocation(player->GetLocation() + positionOffset);
+	SetLocation(player->GetLocation() + positionOffset + 
+		WVec2(sin(randOscillationSpeedMult * 0.7f * GetTimeAlive() + companionSlot) * 1.f, 
+			sin(randOscillationSpeedMult * 1.f * GetTimeAlive() - companionSlot) * 0.5f));
 }
 
 void Companion::Destroy()
@@ -72,3 +80,37 @@ void Companion::Destroy()
 
 	SpaceShip::Destroy();
 }
+
+void Companion::OnCoroutineUpdate(int ID, float duration)
+{
+	SpaceShip::OnCoroutineUpdate(ID, duration);
+
+	switch (ID)
+	{
+	case CoroutineID::moveToPlayer:
+	{
+		float coroutineProgress = pow(duration / moveToPlayerDuration, 1/2.f);
+		SetLocation(
+			initLocation * (1 - coroutineProgress) +
+			(player->GetLocation() + positionOffset +
+				WVec2(sin(randOscillationSpeedMult * 0.7f * GetTimeAlive() + companionSlot) * 1.f,
+					sin(randOscillationSpeedMult * 1.f * GetTimeAlive() - companionSlot) * 0.5f)) * coroutineProgress);
+	}
+	break;
+	}
+}
+
+void Companion::OnCoroutineEnd(int ID)
+{
+	SpaceShip::OnCoroutineEnd(ID);
+
+	switch (ID)
+	{
+	case CoroutineID::moveToPlayer:
+		isMovingToPlayer = false;
+		canShoot = true;
+		isInvincible = false;
+		break;
+	}
+}
+

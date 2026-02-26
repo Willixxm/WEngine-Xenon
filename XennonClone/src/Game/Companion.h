@@ -17,6 +17,10 @@ public:
 
 	int GetSlot() const { return companionSlot; }
 
+	void OnCoroutineUpdate(int ID, float duration) override;
+	void OnCoroutineEnd(int ID) override;
+
+
 protected:
 	SpaceShip* player = nullptr;
 	uint32_t playerID = 0;
@@ -24,5 +28,18 @@ protected:
 	int companionSlot = -1;
 	WE::WVec2 positionOffset = WE::WVec2(0);
 
+	float moveToPlayerDuration = 0.5f;
+	bool isMovingToPlayer = false;
+	WE::WVec2 initLocation = WE::WVec2(0);
+
+	float randOscillationSpeedMult = 1.f;
+
+private:
+	enum CoroutineID : int
+	{
+		moveToPlayer = 2,
+	};
+
+	
 };
 
