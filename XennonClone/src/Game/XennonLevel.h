@@ -166,7 +166,7 @@ private:
 			if (!hasReachedHiScore)
 			{
 				hasReachedHiScore = true;
-				GetGameContext()->AUDIO_PlayAudioOneShot(hiScoreSound, 0.4f);
+				GetGameContext()->AUDIO_PlayAudioOneShot(hiScoreSound, 0.25f);
 			}
 
 
@@ -196,8 +196,8 @@ public:
 
 private:
 	float spawnCoolDown = 4.0f;
-	float minimumSpawnCoolDown = 2.5f;
-	float spawnCoolDownMultiplier = 0.992f;
+	float minimumSpawnCoolDown = 1.5f;
+	float spawnCoolDownMultiplier = 0.99f;
 
 	float timeUntilNextSpawn = 0;
 
