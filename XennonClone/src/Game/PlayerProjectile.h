@@ -38,6 +38,13 @@ protected:
 
 	float animFps = 5.f;
 
+	float soundVolume = 0.15f;
+	std::string shootSounds[5]{
+	"sounds/Explosion_1.5.wav",
+	"sounds/Explosion_1.4.wav",
+	"sounds/Explosion_1.1.wav",
+	"sounds/Explosion_1.2.wav",
+	"sounds/Explosion_1.3.wav" };
 
 };
 

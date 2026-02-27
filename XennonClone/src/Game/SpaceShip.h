@@ -43,6 +43,29 @@ public:
 
 
 protected:
+	std::string shootSounds[9]{
+	"sounds/PlayerShoot_1.1.wav",
+	"sounds/PlayerShoot_1.2.wav",
+	"sounds/PlayerShoot_1.3.wav", 
+	"sounds/PlayerShoot_1.4.wav", 
+	"sounds/PlayerShoot_1.5.wav",
+	"sounds/PlayerShoot_1.6.wav",
+	"sounds/PlayerShoot_1.7.wav",
+	"sounds/PlayerShoot_1.8.wav", 
+	"sounds/PlayerShoot_1.9.wav" };
+
+	std::string powerUpSound_Shield = "sounds/PickUp_1.1.wav";
+	std::string powerUpSound_Companion = "sounds/PickUp_2.1.wav";
+	std::string powerUpSound_Weapon = "sounds/PickUp_3.1.wav";
+
+	std::string hurtSound = "sounds/Hurt_2.1.wav";
+
+	std::string soundPlayerDeath = "sounds/PlayerDeath_1.1.wav";
+	std::string soundPlayerRespawn = "sounds/Respawn_1.1.wav";
+
+	std::string explosionSound = "sounds/Explosion_1.1.wav";
+
+
 	std::string filePath = "graphics/Ship2.bmp";
 
 	int hTiles = 7;

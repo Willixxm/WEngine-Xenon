@@ -9,8 +9,11 @@
 #include <iostream>
 #include <cassert>
 #include <algorithm>
+#include <limits>
 
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_audio.h>
+#include <SDL3/SDL_stdinc.h>
 #include <box2d.h>
 #include <collision.h>
 #include <glad/glad.h>
@@ -22,6 +25,20 @@
 
 namespace WE
 {
+	// ================
+	// --- Audio ------
+	// ================
+	struct AudioObj
+	{
+		bool isValid;
+		std::string filePath;
+		SDL_AudioSpec audioSpec;
+		Uint8* buffer;
+		Uint32 length;
+		float volume;
+	};
+
+
 	// ================
 	// --- OpenGL -----
 	// ================
@@ -261,14 +278,23 @@ namespace WE
 		SDLWindow(std::string wName, unsigned int wWidth, unsigned int wHeight, WRenderEngine renderEngine) :
 			windowName{ wName }, windowWidth{ wWidth }, windowHeight{ wHeight }, renderEngine{ renderEngine }
 		{
-
 			// INIT SDL
-			SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
-			
+			SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK);
 			SDL_SetJoystickEventsEnabled(true);
 			
 			TryOpenFirstJoystick();
 
+			audioDevice = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, NULL);
+
+			for (Uint8 i = 0; i < initStreamCount; ++i)
+			{
+				auto stream = InitAudioStream();
+				if (stream == nullptr)
+					break;
+				audioStreams.push_back(stream);
+				if (!SDL_BindAudioStream(audioDevice, stream))
+					std::cout << "Failed to bind audio stream! \n";
+			}
 
 			window = SDL_CreateWindow(windowName.c_str(), windowWidth, windowHeight, SDL_WINDOW_OPENGL);
 			assert(window, "failed to create window");
@@ -320,6 +346,10 @@ namespace WE
 
 		~SDLWindow()
 		{
+			FreeAudioBuffers();
+			for (auto stream : audioStreams)
+				SDL_DestroyAudioStream(stream);
+			SDL_CloseAudioDevice(audioDevice);
 
 			UnloadAllTextures();
 
@@ -567,6 +597,95 @@ namespace WE
 			}	
 		}
 
+		SDL_AudioStream* InitAudioStream()
+		{
+			auto audioStream = SDL_CreateAudioStream(NULL, NULL);
+				//SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, NULL, NULL, NULL);
+			if (audioStream)
+			{
+				SDL_ResumeAudioStreamDevice(audioStream);
+				return audioStream;
+			}
+			std::cout << "Failed audio stream creation!\n";
+			return nullptr;
+		}
+
+		void PlaySoundFromPath(std::string filePath, float volume)
+		{
+			for (AudioObj aud : audioFiles) {
+				if (aud.filePath == filePath) {
+					if (!aud.isValid) return;
+					else {
+						aud.volume = volume;
+						FindSmallestAudioStreamToPlay(aud);
+						return;
+					}
+				}
+			}
+			// file not loaded yet
+			AudioObj aud;
+			aud.filePath = filePath;
+			aud.volume = volume;
+			aud.isValid = SDL_LoadWAV(filePath.c_str(), &aud.audioSpec, &aud.buffer, &aud.length);
+			audioFiles.push_back(aud);
+			if (!aud.isValid) {
+				std::cout << "Invalid sound file: " << aud.filePath << '\n';
+				return;
+			}
+			FindSmallestAudioStreamToPlay(aud);
+		}
+		void FindSmallestAudioStreamToPlay(AudioObj aud)
+		{
+			size_t smallestStream = 0;
+			int smallestStreamSize = INT_MAX;
+
+			for (size_t i = 0; i < audioStreams.size(); ++i) {
+				int streamSize = SDL_GetAudioStreamAvailable(audioStreams[i]);
+				if (streamSize == -1) {
+					std::cout << "Error getting stream size!\n";
+					return;
+				}
+				if (streamSize > 0) {
+					if (streamSize < smallestStreamSize) {
+						smallestStreamSize = streamSize;
+						smallestStream = i;
+					}
+					continue;
+				}
+				smallestStream = i;
+				smallestStreamSize = 0;
+				break;
+			}
+
+			if (smallestStreamSize != 0) {
+				//std::cout << "No free audio streams, clearing smallest one, id: " << smallestStream << '\n';
+				if (!SDL_ClearAudioStream(audioStreams[smallestStream]))
+					std::cout << "Failed to clear audio stream \n";
+			}
+
+			if (!SDL_SetAudioStreamFormat(audioStreams[smallestStream], &aud.audioSpec, NULL)) {
+				std::cout << "Error setting new audio stream format! \n";
+				return;
+			}
+
+			SDL_SetAudioStreamGain(audioStreams[smallestStream], aud.volume);
+
+			if (!SDL_PutAudioStreamData(audioStreams[smallestStream], aud.buffer, aud.length)) {
+				std::cout << "Error putting audio in stream! \n";
+				return;
+			}
+		}
+		void FreeAudioBuffers()
+		{
+			for (size_t i = 0; i < audioFiles.size(); ++i)
+			{
+				if (audioFiles[i].isValid)
+					SDL_free(audioFiles[i].buffer);
+
+				--i;
+				audioFiles.erase(audioFiles.begin() + i);
+			}
+		}
 
 	private:
 		// ===============
@@ -1160,6 +1279,13 @@ namespace WE
 		SDL_Event windowEvent = SDL_Event();
 		UserInputs userInputs;
 
+		SDL_AudioDeviceID audioDevice;
+		//float audioStreamVolume = 0.05f;
+		//Uint8 maxStreamCount = 32;
+		Uint8 initStreamCount = 32;
+		std::vector<SDL_AudioStream*> audioStreams;
+		std::vector<AudioObj> audioFiles;
+
 		SDL_Joystick* playerJoyStick;
 		short int maxStickValue = 32767;
 
@@ -1168,7 +1294,6 @@ namespace WE
 		bool autoUnloadAssetIfUnused = true;
 
 	};
-
 
 
 	class GameContext::Box2D
@@ -1654,5 +1779,10 @@ namespace WE
 	void GameContext::MEMORY_SetAutoUnloadAssetIfUnused(bool enabled)
 	{
 		windowPImpl->autoUnloadAssetIfUnused = enabled;
+	}
+
+	void GameContext::AUDIO_PlayAudioOneShot(std::string filePath, float volume)
+	{
+		windowPImpl->PlaySoundFromPath(filePath, volume);
 	}
 }

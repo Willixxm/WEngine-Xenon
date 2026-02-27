@@ -183,6 +183,7 @@ namespace WE
 	public:
 		void MEMORY_SetAutoUnloadAssetIfUnused(bool enabled);
 		
+		void AUDIO_PlayAudioOneShot(std::string filePath, float volume);
 	
 	};
 }

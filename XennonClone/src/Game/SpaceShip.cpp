@@ -38,8 +38,6 @@ void SpaceShip::Update(float deltaTime)
 
 	HandleMovement(deltaTime);
 	HandleShoot(deltaTime);
-
-	//std::cout << GetLocation().x << " | " << GetLocation().y << '\n';
 }
 
 void SpaceShip::HandleShoot(float deltaTime)
@@ -101,6 +99,9 @@ void SpaceShip::HandleMovement(float deltaTime)
 
 void SpaceShip::PrimaryFire()
 {
+	GetGameContext()->AUDIO_PlayAudioOneShot(
+		shootSounds[rand() % (sizeof(shootSounds) / sizeof(shootSounds[0]))], 0.07f);
+
 	switch (weaponLevel)
 	{
 	default: 
@@ -126,6 +127,9 @@ void SpaceShip::DealDamage(Entity* dealer, float damage)
 		currentHealth -= damage;
 		if (currentHealth <= 0)
 		{ // DIE
+
+			GetGameContext()->AUDIO_PlayAudioOneShot(soundPlayerDeath, 0.5f);
+
 			for (size_t i = 0; i < sizeof(companions) / sizeof(companions[0]); ++i)
 			{
 				companions[i].comp = nullptr;
@@ -134,6 +138,8 @@ void SpaceShip::DealDamage(Entity* dealer, float damage)
 			
 			if (extraLives > 0)
 			{
+				GetGameContext()->AUDIO_PlayAudioOneShot(soundPlayerRespawn, 0.35f);
+
 				GetGameContext()->GAME_StartCoroutine(this, CoroutineID::invincibleAfterDeath, invincibilityDuration);
 				GetGameContext()->RENDER_SetAnimationTileParameters(this, 7, 7);
 				GetGameContext()->GAME_InstantiateEntity<Explosion>(GetLocation(), 0.f, GetInitialSize() * 2.f);
@@ -153,6 +159,9 @@ void SpaceShip::DealDamage(Entity* dealer, float damage)
 			GetGameContext()->GAME_StartCoroutine(this, CoroutineID::flashAfterDamage, dmgFlashDuration);
 			GetGameContext()->RENDER_SetAnimationTileParameters(this, flashTileOffset, flashTileSpan);
 			isInvincible = true; // very short invincibility
+
+			GetGameContext()->AUDIO_PlayAudioOneShot(hurtSound, 0.3f);
+			GetGameContext()->AUDIO_PlayAudioOneShot(explosionSound, 0.3f);
 		}
 
 		if (GetGameContext()->IsValid(healthBar, healthBarID))
@@ -212,6 +221,7 @@ void SpaceShip::OnPickUp_Shield()
 	currentHealth = maxHealth;
 	if (GetGameContext()->IsValid(healthBar, healthBarID))
 		GetGameContext()->RENDER_SetManualAnimationState(healthBar, (maxHealth - currentHealth) / maxHealth);
+	GetGameContext()->AUDIO_PlayAudioOneShot(powerUpSound_Shield, 0.2f);
 }
 void SpaceShip::OnPickUp_Weapon()
 {
@@ -230,37 +240,28 @@ void SpaceShip::OnPickUp_Weapon()
 		fireCoolDownMult = 1.f;
 		break;
 	}
+
+	GetGameContext()->AUDIO_PlayAudioOneShot(powerUpSound_Weapon, 0.2f);
 }
 
 bool SpaceShip::OnPickUp_Companion(const PowerUp* powerUp)
 {
-	//std::cout << "PICK UP COMPANION ==\n";
-
 	for (size_t i = 0; i < (sizeof(companions) / sizeof(companions[0])); ++i)
 	{
-		//std::cout << "checking slot:" << i << " -> ";
 		if (GetGameContext()->IsValid(companions[i].comp, companions[i].id))
 		{
-			//std::cout << "valid companion [" << companions[i].comp << "] with slot id:" << companions[i].comp->GetSlot() << '\n';
 			if (companions[i].comp->GetSlot() == i)
 				continue;
-				
-			//std::cout << "COMPANION IS FILLING TWO SLOTS! \n";
 		}
-		
-		// if empty slot OR filled by companion with different slot ID (DANGLING POINTER)
-		
-		//std::cout << "empty slot" << '\n';
 			
+		GetGameContext()->AUDIO_PlayAudioOneShot(powerUpSound_Companion, 0.2f);
+
 		auto companion = GetGameContext()->GAME_InstantiateEntity<Companion>(powerUp->GetLocation(), GetRotation(), powerUp->GetInitialSize());
-		//std::cout << "Instantiating new Companion [" << companion << "] // in slot: " << i << '\n';
 		companions[i].comp = companion;
 		companions[i].id = companion->GetID();
 		companion->SetPlayer(this, GetID(), i);
 		return true;
 	}
-
-	//std::cout << "returning NOT VALID on_pickup..." << '\n';
 	return false;
 }
 
@@ -273,7 +274,6 @@ void SpaceShip::OnRemoveCompanion(const Companion* companionToRemove)
 			companions[i].comp = nullptr;
 			companions[i].id = 0;
 		}
-
 	}
 }
 

@@ -35,6 +35,6 @@ protected:
 	uint32_t collidesWith = WCollisionLayer::Layer1;
 
 	float moveSpeed = 3.f;
-	float maxLifeTime = 25.0f;
+	float maxLifeTime = 30.0f;
 };
 

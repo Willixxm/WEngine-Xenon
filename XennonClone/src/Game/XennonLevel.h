@@ -61,7 +61,7 @@ public:
 		GetGameContext()->RENDER_AddRenderComponent(rightBorder, "graphics/bblogo.bmp", 20);
 		//GetGameContext()->RENDER_AddRenderComponent(leftBorder, "graphics/bblogo.bmp", 20);
 	
-
+		GetGameContext()->AUDIO_PlayAudioOneShot("sounds/Dimrain47-At_the_Speed_of_Light.wav", 0.25f);
 
 		float aspRatio = 16.f / 7;
 		float safeBorder = camSize * 0.03f; //safe border
@@ -151,6 +151,9 @@ private:
 	TextRenderer* hiScoreText = nullptr;
 	unsigned int playerHiScore = 521533;
 
+	bool hasReachedHiScore = false;
+	std::string hiScoreSound = "sounds/HiScore_1.1.wav";
+
 	void UpdateScoreText()
 	{
 		std::ostringstream oss;
@@ -160,6 +163,13 @@ private:
 
 		if (playerScore > playerHiScore)
 		{
+			if (!hasReachedHiScore)
+			{
+				hasReachedHiScore = true;
+				GetGameContext()->AUDIO_PlayAudioOneShot(hiScoreSound, 0.4f);
+			}
+
+
 			playerHiScore = playerScore;
 			UpdateHiScoreText();
 		}

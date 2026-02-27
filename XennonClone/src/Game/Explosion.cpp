@@ -13,7 +13,6 @@ void Explosion::Start()
 	lifeTime = (GetInitialSize().x + GetInitialSize().y)/2 * lifeTimeMult;
 	
 	GetGameContext()->RENDER_SetAnimationParameters(this, true, (hTiles * vTiles) / lifeTime);
-	
 
 }
 

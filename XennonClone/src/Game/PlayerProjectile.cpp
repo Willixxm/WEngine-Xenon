@@ -56,8 +56,11 @@ void PlayerProjectile::On_EnterOtherSensor(Entity* otherSensor)
 	{
 		hitEnemy->DealDamage(this, projectileDmg);
 
-		//if (!hitEnemy->GetIsInvincible())
-			OnDestroy(GetLocation());
+		//if (!hitEnemy->GetIsInvincible()) 
+		OnDestroy(GetLocation());
+
+		GetGameContext()->AUDIO_PlayAudioOneShot(
+			shootSounds[rand() % (sizeof(shootSounds) / sizeof(shootSounds[0]))], soundVolume);
 	}
 
 	Destroy();

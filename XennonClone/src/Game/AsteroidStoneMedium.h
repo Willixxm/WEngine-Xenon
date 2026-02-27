@@ -30,6 +30,9 @@ public:
 
 	void DieByPlayer() override
 	{
+		GetGameContext()->AUDIO_PlayAudioOneShot(
+			shootSounds[rand() % (sizeof(shootSounds) / sizeof(shootSounds[0]))], 0.45f);
+
 		//spawn 3 small rocks
 		WVec2 initMoveVector = GetLinearVelocity();
 
