@@ -285,6 +285,8 @@ namespace WE
 			TryOpenFirstJoystick();
 
 			audioDevice = SDL_OpenAudioDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, NULL);
+			if (audioDevice)
+				std::cout << "Audio Device: " << SDL_GetAudioDeviceName(audioDevice) << '\n';
 
 			for (Uint8 i = 0; i < initStreamCount; ++i)
 			{
@@ -942,7 +944,7 @@ namespace WE
 		void RenderFrameGL(float deltaTime)
 		{
 			glClearColor(0.f, 0.f, 0.f, 0.f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			
 			glBindVertexArray(baseVao);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, baseEbo);
@@ -1137,7 +1139,7 @@ namespace WE
 			// load and generate the texture
 			int width, height, nrChannels;
 			//stbi_set_flip_vertically_on_load(true);
-			unsigned char* data = stbi_load(filepath.c_str(), &width, &height, &nrChannels, 4); //use for channels to later calculate alpha based on color
+			unsigned char* data = stbi_load(filepath.c_str(), &width, &height, &nrChannels, 0); //use for channels to later calculate alpha based on color
 			
 			if (!data)
 			{
@@ -1150,8 +1152,10 @@ namespace WE
 			LoadedTexture.pixelWidth = width;
 			LoadedTexture.pixelHeight = height;
 
+			/*
 			for (int i = 0; i < width * height; i++)
 			{
+				
 				if (data[i * 4 + 0] == 255 &&
 					data[i * 4 + 1] == 0 &&
 					data[i * 4 + 2] == 255)
@@ -1165,7 +1169,9 @@ namespace WE
 				{
 					data[i * 4 + 3] = 255;
 				}
-			}
+			}*/
+
+
 
 			//unbind any vao
 			glBindVertexArray(0);
@@ -1173,7 +1179,7 @@ namespace WE
 			glGenTextures(1, &LoadedTexture.tex);
 			glBindTexture(GL_TEXTURE_2D, LoadedTexture.tex);
 
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 
 			// set the texture wrapping/filtering options (on the currently bound texture object)
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
